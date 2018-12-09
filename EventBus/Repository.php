@@ -6,7 +6,10 @@ namespace Marussia\Components\EventBus;
 
 class Repository
 {
+    // Массив слоев участников
     private $memberLayers;
+    
+    // Массив участников
     private $members;
     
     // Регистрирует участника в репозитории шины событий
@@ -31,8 +34,9 @@ class Repository
         return array_intersect_key($this->members, $array);
     }
     
-    public function getMember(string $name)
+    // Возвращает участника по type.name
+    public function getMember(string $member)
     {
-        return $this->members[$name];
+        return $this->members[$member];
     }
 }

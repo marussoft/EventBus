@@ -58,7 +58,7 @@ class Bus
         $this->prepareTasks($members, $event->subject(), $event->eventName());
         
         // Перадаем задачи в обработчик
-        $this->runTasks();
+        $this->runHandle();
     }
     
     // Устанавливает обработчик задач
@@ -132,8 +132,8 @@ class Bus
         }
     }
 
-    // Передает задачи обработчику
-    private function runTasks()
+    // Запускает обработчик
+    private function runHandle()
     {
         call_user_func($this->handle, $this->handleMethod);
     }

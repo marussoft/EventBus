@@ -6,11 +6,17 @@ namespace Marussia\Components\EventBus;
 
 class Member
 {
+    // Имя участника
     private $name;
+    
+    // Слой
     private $layer;
+    
+    // Имя класса обработчика задач
     private $handle;
+    
+    // Массив подписок
     private $subscribe;
-    private $conditions;
 
     public function __construct(string $type, string $name, string $layer)
     {
@@ -35,6 +41,7 @@ class Member
         }
     }
     
+    // Создает задачу
     private function createTask(string $action, array $conditions)
     {
         $task = new Task($this->name, $action, $this->layer, $conditions, $this->handle);
@@ -42,7 +49,7 @@ class Member
         return $task;
     }
     
-    // Устанавливает обработчик для участника
+    // Устанавливает обработчик задач
     public function handle(string $handle)
     {
         $this->handle = $handle;
