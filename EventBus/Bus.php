@@ -14,11 +14,13 @@ class Bus
     private $taskQueue;
     private $storage;
 
-    public function __construct()
+    public function __construct(Repository $repository, Storage $storage, Queue $queue)
     {
-        $this->storage = new Storage;
-        $this->repository = new Repository;
-        $this->taskQueue = new Queue;
+        $this->repository = $repository;
+    
+        $this->storage = $storage;
+    
+        $this->taskQueue = $queue;
     }
     
     // Добавляет новый слой событий
@@ -37,7 +39,7 @@ class Bus
     // Обрабатывает принятое соботые
     public function event(string $subject, string $event, $data = null)
     {
-        // Кладем событие в хранилище
+        // Помещаем событие в хранилище
         $this->storage->register($subject, $event, $data);
         
         // Проверяем отложенные задачи
@@ -55,6 +57,22 @@ class Bus
     
     // Возвращает участников попадающих под событие
     private function getEventMembers(string $subject)
+    {
+        // Получаем имя слоя по владельцу события
+        $layer = $this->repository->getLayerByName($subject);
+        
+        // Получаем ключ слоя
+        $num = array_search($layer, $this->layers);
+        
+        // Получаем массив слоёв доступных для события
+        $layers = array_slice($this->layers, 0, $num);
+        
+        // Возвращаем участников из массива слоев
+        return $this->repository->getMembersByLayers($layers);
+    }
+    
+    // Возвращает участников из допустимых слоёв
+    private function getLayerMembers(string $subject)
     {
         // Получаем имя слоя по владельцу события
         $layer = $this->repository->getLayerByName($subject);

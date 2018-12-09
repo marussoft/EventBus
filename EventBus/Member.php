@@ -42,7 +42,7 @@ class Member
     
     public function createTask(string $action)
     {
-        $task = new stdClass();
+        $task = new Task;
         $task->name = $this->name;
         $task->action = $action;
         $task->conditions = [];
@@ -51,7 +51,7 @@ class Member
         return $task;
     }
     
-    // Устанавливает обработчик для действия
+    // Устанавливает обработчик для участника
     public function handle(string $handle)
     {
         $this->handle = $handle;
