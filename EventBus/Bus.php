@@ -43,7 +43,7 @@ class Bus
     }
     
     // Обрабатывает принятое соботые
-    public function event(Event $event string $subject, string $event, $data = null)
+    public function event(Event $event)
     {
         // Помещаем событие в хранилище
         $this->storage->register($event);

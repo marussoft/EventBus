@@ -18,4 +18,9 @@ class Queue
     {
         $this->splQueue->enqueue($param);
     }
+    
+    public function pop()
+    {
+        return $this->splQueue->pop()
+    }
 }
