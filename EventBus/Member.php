@@ -1,4 +1,6 @@
-<?php
+<?php 
+
+declare(strict_types=1);
 
 namespace Marussia\Components\EventBus;
 
@@ -17,17 +19,10 @@ class Member
         $this->type = $type;
     }
 
-    // Создает новую подписку на событие
-    public function subscribe(string $subject, string $event, string $action, array $conditions = [])
+    // Создает новую подписку на событие Type.Name.Event
+    public function subscribe(string $subject, string $action, array $conditions = [])
     {
-        $task = new stdClass();
-        $task->name = $this->name;
-        $task->action = $this->subscribe[$event];
-        $task->conditions = $conditions;
-        $task->layer = $this->layer;
-        $task->handle = $this->handle;
-
-        $this->subscribe[$subject . $event] = $task;
+        $this->subscribe[$subject] = $this->createTask($action, $conditions);
         
         return $this;
     }
@@ -35,19 +30,15 @@ class Member
     // Возвращает задачи для события
     public function getTask(string $subject, string $event)
     {
-        if (isset($this->subscribe[$subject . $event])) {
-            return $this->subscribe[$subject . $event];
+        if (isset($this->subscribe[$subject . '.' . $event])) {
+            return $this->subscribe[$subject . '.' . $event];
         }
     }
     
-    public function createTask(string $action)
+    private function createTask(string $action, array $conditions)
     {
-        $task = new Task;
-        $task->name = $this->name;
-        $task->action = $action;
-        $task->conditions = [];
-        $task->layer = $this->layer;
-        $task->handle = $this->handle;
+        $task = new Task($this->name, $action, $this->layer, $conditions, $this->handle);
+
         return $task;
     }
     

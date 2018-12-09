@@ -11,7 +11,7 @@ class Dispatcher
     
     // Шина событий
     private $bus;
-
+    
     public function __construct(Repository $repository, Bus $bus)
     {
         $this->repository = $repository;

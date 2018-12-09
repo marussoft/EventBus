@@ -8,15 +8,15 @@ class Storage
 {
     private $events = [];
 
-    public function register($subject, $event, $data)
+    public function register(Event $event)
     {
-        $this->events[$subject . $event] = $data;
+        $this->events[$event->subject() . '.' . $event->eventName] = $event->data();
     }
     
     public function exists(array $data)
     {
         foreach ($data as $subject => $event) {
-            if (!array_key_exists($subject . $event, $this->events)) {
+            if (!array_key_exists($subject . '.' . $event, $this->events)) {
                 return false;
             }
         }
@@ -25,7 +25,7 @@ class Storage
     
     public function data(string $subject, string $event)
     {
-        return $this->events[$subject . $event] ?? null;
+        return $this->events[$subject . '.' . $event] ?? null;
     }
 
 }

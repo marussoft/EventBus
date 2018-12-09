@@ -6,13 +6,26 @@ namespace Marussia\Components\EventBus;
 
 class Bus
 {
+    // Репозиторий участников шины событий
     private $repository;
-    private $handle;
-    private $handleMethod;
+    
+    // Массив слоёв
     private $layers;
+    
+    // Массив отложенных задач
     private $held;
+    
+    // Очередь текущих задач
     private $taskQueue;
+    
+    // Хранилище полученых событий
     private $storage;
+    
+    // Обработчик задач
+    private $handle;
+    
+    // Метод обработчика задач
+    private $handleMethod;
 
     public function __construct(Repository $repository, Storage $storage, Queue $queue)
     {
@@ -29,50 +42,35 @@ class Bus
         $this->layers[] = $layer;
     }
     
-    // Устанавливает обработчик событий
-    public function handle($handle, $method)
-    {
-        $this->handle = $handle;
-        $this->handleMethod = $method;
-    }
-    
     // Обрабатывает принятое соботые
-    public function event(string $subject, string $event, $data = null)
+    public function event(Event $event string $subject, string $event, $data = null)
     {
         // Помещаем событие в хранилище
-        $this->storage->register($subject, $event, $data);
+        $this->storage->register($event);
         
         // Проверяем отложенные задачи
         $this->checkHeld();
         
         // Получаем участников для события
-        $members = $this->getEventMembers($subject);
+        $members = $this->getAccessMembers($event->subject());
         
         // Подготавливаем задачи
-        $this->prepareTasks($members, $subject, $event);
+        $this->prepareTasks($members, $event->subject(), $event->eventName());
         
         // Перадаем задачи в обработчик
-        $this->transferTasks();
+        $this->runTasks();
     }
     
-    // Возвращает участников попадающих под событие
-    private function getEventMembers(string $subject)
+    // Устанавливает обработчик задач
+    public function handle($handle, string $method)
     {
-        // Получаем имя слоя по владельцу события
-        $layer = $this->repository->getLayerByName($subject);
-        
-        // Получаем ключ слоя
-        $num = array_search($layer, $this->layers);
-        
-        // Получаем массив слоёв доступных для события
-        $layers = array_slice($this->layers, 0, $num);
-        
-        // Возвращаем участников из массива слоев
-        return $this->repository->getMembersByLayers($layers);
+        $this->handle = $handle;
+        $this->handleMethod = $method;
+        $this->handle->setQueue($this->taskQueue)
     }
     
     // Возвращает участников из допустимых слоёв
-    private function getLayerMembers(string $subject)
+    private function getAccessMembers(string $subject)
     {
         // Получаем имя слоя по владельцу события
         $layer = $this->repository->getLayerByName($subject);
@@ -97,7 +95,7 @@ class Bus
             // Получаем задачу если участник подписан на событие
             $task = $member->getTask($subject, $event);
             
-            if ($task === null) {
+            if (null !== $task) {
                 // Если участник подписан на соботие то обрабатываем его
                 $this->process($task);
             }
@@ -107,9 +105,8 @@ class Bus
     // Обрабатывает задачу для слушателя
     private function process($task)
     {
-        
         // Проверяем удовлетворены ли условия
-        if ($this->storage->exists($task->conditions)) {
+        if ($this->storage->exists($task->conditions())) {
 
             // Помещаем задачу в очередь задач на выполнение
             $this->taskQueue->enqueue($task);
@@ -123,20 +120,21 @@ class Bus
     // Проверяет возможность выполнения отложенных задач
     private function checkHeld()
     {
-        foreach($this->held as $task) {
+        foreach($this->held as $key => $task) {
             // Проверяем удовлетворены ли условия
-            if ($this->storage->exists($task->conditions)) {
+            if ($this->storage->exists($task->conditions())) {
 
-                // Кладем задачу в массив задач на выполнение
+                // Помещаем задачу в массив задач на выполнение
                 $this->taskQueue->enqueue($task);
+                // Удаляем задачу из отложенных
+                unset($this->held[$key]);
             }
         }
     }
-    
-    // Передает массив задач обработчику
-    private function transferTasks()
-    {
-        call_user_func_array($this->handle, $this->handleMethod, $this->taskQueue);
-    }
 
+    // Передает задачи обработчику
+    private function runTasks()
+    {
+        call_user_func($this->handle, $this->handleMethod);
+    }
 }
