@@ -105,7 +105,7 @@ class Bus
     // Обрабатывает задачу для слушателя
     private function process($task)
     {
-        // Проверяем удовлетворены ли условия
+        // Проверяем выполнены ли условия
         if ($this->storage->exists($task->conditions())) {
 
             // Помещаем задачу в очередь задач на выполнение
@@ -121,7 +121,7 @@ class Bus
     private function checkHeld()
     {
         foreach($this->held as $key => $task) {
-            // Проверяем удовлетворены ли условия
+            // Проверяем выполнены ли условия
             if ($this->storage->exists($task->conditions())) {
 
                 // Помещаем задачу в массив задач на выполнение
