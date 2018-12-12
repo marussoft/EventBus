@@ -14,8 +14,8 @@ class Event
 
     public function __construct(string $subject, string $event, $data = null)
     {
-        $this->subject= $subject;
-        $this->eventName $event;
+        $this->subject = $subject;
+        $this->eventName = $event;
         $this->data = $data;
     }
     

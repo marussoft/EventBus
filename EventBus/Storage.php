@@ -10,11 +10,15 @@ class Storage
 
     public function register(Event $event)
     {
-        $this->events[$event->subject() . '.' . $event->eventName] = $event->data();
+        $this->events[$event->subject() . '.' . $event->eventName()] = $event->data();
     }
     
     public function exists(array $data)
     {
+        if (empty($data)) {
+            return true;
+        }
+        
         foreach ($data as $subject => $event) {
             if (!array_key_exists($subject . '.' . $event, $this->events)) {
                 return false;

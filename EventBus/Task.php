@@ -16,7 +16,7 @@ class Task
     
     private $handle;
 
-    public function __construct(string $name, string $action, string $layer, array $conditions, string $handle)
+    public function __construct(string $name, string $action, string $layer, array $conditions = [], string $handle = '')
     {
         $this->name = $name;
         $this->action = $action;

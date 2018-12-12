@@ -15,14 +15,18 @@ class Member
     // Имя класса обработчика задач
     private $handle;
     
+    // Тип участника
+    private $type;
+    
     // Массив подписок
     private $subscribe;
 
-    public function __construct(string $type, string $name, string $layer)
+    public function __construct(string $type, string $name, string $layer, string $handle = '')
     {
         $this->name = $name;
         $this->layer = $layer;
         $this->type = $type;
+        $this->handle = $handle;
     }
 
     // Создает новую подписку на событие Type.Name.Event
@@ -41,20 +45,27 @@ class Member
         }
     }
     
+    public function name()
+    {
+        return $this->name;
+    }
+    
+    public function layer()
+    {
+        return $this->layer;
+    }
+    
+    public function type()
+    {
+        return $this->type;
+    }
+    
     // Создает задачу
-    private function createTask(string $action, array $conditions)
+    private function createTask(string $action, array $conditions = [])
     {
         $task = new Task($this->name, $action, $this->layer, $conditions, $this->handle);
 
         return $task;
-    }
-    
-    // Устанавливает обработчик задач
-    public function handle(string $handle)
-    {
-        $this->handle = $handle;
-        
-        return $this;
     }
     
 }

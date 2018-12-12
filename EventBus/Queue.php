@@ -11,7 +11,7 @@ class Queue
     public function __construct()
     {
         $this->splQueue = new \SplQueue;
-        $this->splQueue->setIteratorMode(SplQueue::IT_MODE_DELETE);
+        $this->splQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
     }
 
     public function enqueue($param)
@@ -21,6 +21,6 @@ class Queue
     
     public function pop()
     {
-        return $this->splQueue->pop()
+        return $this->splQueue->pop();
     }
 }

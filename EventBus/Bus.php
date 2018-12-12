@@ -13,7 +13,7 @@ class Bus
     private $layers;
     
     // Массив отложенных задач
-    private $held;
+    private $held = [];
     
     // Очередь текущих задач
     private $taskQueue;
@@ -62,24 +62,24 @@ class Bus
     }
     
     // Устанавливает обработчик задач
-    public function handle($handle, string $method)
+    public function setHandle($handle, string $method)
     {
         $this->handle = $handle;
         $this->handleMethod = $method;
-        $this->handle->setQueue($this->taskQueue)
+        $this->handle->setQueue($this->taskQueue);
     }
     
     // Возвращает участников из допустимых слоёв
     private function getAccessMembers(string $subject)
     {
         // Получаем имя слоя по владельцу события
-        $layer = $this->repository->getLayerByName($subject);
-        
+        $layer = $this->repository->getMemberLayer($subject);
+
         // Получаем ключ слоя
         $num = array_search($layer, $this->layers);
         
         // Получаем массив слоёв доступных для события
-        $layers = array_slice($this->layers, 0, $num);
+        $layers = array_slice($this->layers, 0, $num + 1);
         
         // Возвращаем участников из массива слоев
         return $this->repository->getMembersByLayers($layers);
@@ -135,6 +135,6 @@ class Bus
     // Запускает обработчик
     private function runHandle()
     {
-        call_user_func($this->handle, $this->handleMethod);
+        call_user_func([$this->handle, $this->handleMethod]);
     }
 }
