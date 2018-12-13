@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Marussia\Components\EventBus;
 
+use Marussia\Components\DependencyInjection\Container as Container;
+
 class Dispatcher
 {
     // Репозиторий всех участников
@@ -12,11 +14,17 @@ class Dispatcher
     // Шина событий
     private $bus;
     
-    public function __construct(Repository $repository, Bus $bus)
+    // Контейнер
+    private $c;
+    
+    public function __construct()
     {
-        $this->repository = $repository;
+        $this->c = new Container;
         
-        $this->bus = $bus;
+        $this->repository = $this->c->instance(Repository::class);
+        
+        $this->bus = $this->c->instance(Bus::class);
+
     }
 
     // Регистрирует нового участника в шине событий
