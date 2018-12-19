@@ -37,13 +37,13 @@ class Bus
     }
     
     // Добавляет новый слой событий
-    public function addLayer(string $layer)
+    public function addLayer(string $layer) : void
     {
         $this->layers[] = $layer;
     }
     
     // Обрабатывает принятое соботые
-    public function event(Event $event)
+    public function event(Event $event) : void
     {
         // Помещаем событие в хранилище
         $this->storage->register($event);
@@ -63,13 +63,13 @@ class Bus
     }
     
     // Устанавливает обработчик задач
-    public function setHandle($handle, string $method)
+    public function setHandle($handle) : void
     {
         $this->handle = $handle;
     }
     
     // Возвращает участников из допустимых слоёв
-    private function getAccessMembers(string $subject)
+    private function getAccessMembers(string $subject) : array
     {
         // Получаем имя слоя по владельцу события
         $layer = $this->repository->getMemberLayer($subject);
@@ -85,7 +85,7 @@ class Bus
     }
     
     // Подготавливает задачи для события
-    private function prepareTasks(Event $event, array $members)
+    private function prepareTasks(Event $event, array $members) : void
     {
         $task = null;
         
@@ -102,7 +102,7 @@ class Bus
     }
     
     // Обрабатывает задачу для слушателя
-    private function process($task, $event)
+    private function process($task, $event) : void
     {
         $task->setData($event->eventData());
     
@@ -119,7 +119,7 @@ class Bus
     }
     
     // Проверяет возможность выполнения отложенных задач
-    private function checkHeld()
+    private function checkHeld() : void
     {
         foreach($this->held as $key => $task) {
             // Проверяем выполнены ли условия
@@ -134,7 +134,7 @@ class Bus
     }
 
     // Запускает очередь задач
-    private function run()
+    private function run() : void
     {
         $this->run = true;
 
@@ -146,7 +146,7 @@ class Bus
     }
     
     // Итерирует задачи в очереди
-    private function iterate()
+    private function iterate() : \Traversable
     {
         while(!$this->taskQueue->isEmpty()) {
             yield $this->taskQueue->pop();
