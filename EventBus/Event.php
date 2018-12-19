@@ -29,7 +29,7 @@ class Event
         return $this->eventName;
     }
     
-    public function data()
+    public function eventData()
     {
         return $this->data;
     }

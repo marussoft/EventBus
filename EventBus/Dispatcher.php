@@ -38,8 +38,12 @@ class Dispatcher
     }
     
     // Принимает новое событие
-    public function dispatch(string $subject, string $event, $data = null)
+    public function dispatch(string $subject, string $event, $event_data = null)
     {
+        $data = new \stdClass();
+        
+        $data->eventData = $event_data;
+    
         $event = new Event($subject, $event, $data);
         
         $this->bus->event($event);

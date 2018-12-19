@@ -26,9 +26,6 @@ class Bus
     
     // Метод обработчика задач
     private $handleMethod;
-    
-    // Флаг состояния шины
-    private $run;
 
     public function __construct(Repository $repository, Storage $storage)
     {
@@ -61,7 +58,7 @@ class Bus
         $members = $this->getAccessMembers($event->subject());
         
         // Подготавливаем задачи
-        $this->prepareTasks($members, $event->subject(), $event->eventName());
+        $this->prepareTasks($event, $members);
         
         if ($this->run === false) {
             $this->run();
@@ -92,25 +89,27 @@ class Bus
     }
     
     // Подготавливает задачи для события
-    private function prepareTasks(array $members, string $subject, string $event)
+    private function prepareTasks(Event $event, array $members)
     {
         $task = null;
         
         // Проходим по всем слушателям
         foreach($members as $member) {
             // Получаем задачу если участник подписан на событие
-            $task = $member->getTask($subject, $event);
+            $task = $member->getTask($event->subject(), $event->eventName());
             
             if (null !== $task) {
                 // Если участник подписан на соботие то обрабатываем его
-                $this->process($task);
+                $this->process($task, $event);
             }
         }
     }
     
     // Обрабатывает задачу для слушателя
-    private function process($task)
+    private function process($task, $event)
     {
+        $task->setData($event->eventData());
+    
         // Проверяем выполнены ли условия
         if ($this->storage->exists($task->conditions())) {
 
@@ -137,7 +136,7 @@ class Bus
             }
         }
     }
-    
+
     // Запускает очередь задач
     private function run()
     {
@@ -157,5 +156,4 @@ class Bus
             yield $this->taskQueue->pop();
         }
     }
-    
 }

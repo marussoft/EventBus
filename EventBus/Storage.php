@@ -10,7 +10,7 @@ class Storage
 
     public function register(Event $event)
     {
-        $this->events[$event->subject() . '.' . $event->eventName()] = $event->data();
+        $this->events[$event->subject() . '.' . $event->eventName()] = $event->eventData();
     }
     
     public function exists(array $data)

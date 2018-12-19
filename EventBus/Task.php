@@ -12,6 +12,8 @@ class Task
     
     private $layer;
     
+    private $data;
+    
     private $conditions;
     
     private $handle;
@@ -23,6 +25,11 @@ class Task
         $this->layer = $layer;
         $this->conditions = $conditions;
         $this->handle = $handle;
+    }
+    
+    public function setData(\stdClass $data)
+    {
+        $this->data = $data;
     }
     
     public function name()
@@ -38,6 +45,11 @@ class Task
     public function layer()
     {
         return $this->layer;
+    }
+    
+    public function data()
+    {
+        return $this->data;
     }
     
     public function conditions()
