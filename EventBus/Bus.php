@@ -26,14 +26,20 @@ class Bus
     
     // Метод обработчика задач
     private $handleMethod;
+    
+    // Флаг состояния шины
+    private $run;
 
-    public function __construct(Repository $repository, Storage $storage, Queue $queue)
+    public function __construct(Repository $repository, Storage $storage)
     {
         $this->repository = $repository;
     
         $this->storage = $storage;
     
-        $this->taskQueue = $queue;
+        $this->taskQueue = new \SplQueue;
+        $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
+        
+        $this->run = false;
     }
     
     // Добавляет новый слой событий
@@ -57,8 +63,9 @@ class Bus
         // Подготавливаем задачи
         $this->prepareTasks($members, $event->subject(), $event->eventName());
         
-        // Перадаем задачи в обработчик
-        $this->runHandle();
+        if ($this->run === false) {
+            $this->run();
+        }
     }
     
     // Устанавливает обработчик задач
@@ -66,7 +73,6 @@ class Bus
     {
         $this->handle = $handle;
         $this->handleMethod = $method;
-        $this->handle->setQueue($this->taskQueue);
     }
     
     // Возвращает участников из допустимых слоёв
@@ -131,10 +137,25 @@ class Bus
             }
         }
     }
-
-    // Запускает обработчик
-    private function runHandle()
+    
+    // Запускает очередь задач
+    private function run()
     {
-        call_user_func([$this->handle, $this->handleMethod]);
+        $this->run = true;
+
+        foreach ($this->iterate() as $task) {
+            $this->handle->run($task);
+        }
+        
+        $this->run = false;
     }
+    
+    // Итерирует задачи в очереди
+    private function iterate()
+    {
+        while(!$this->taskQueue->isEmpty()) {
+            yield $this->taskQueue->pop();
+        }
+    }
+    
 }
