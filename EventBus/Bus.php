@@ -23,9 +23,6 @@ class Bus
     
     // Обработчик задач
     private $handle;
-    
-    // Метод обработчика задач
-    private $handleMethod;
 
     public function __construct(Repository $repository, Storage $storage)
     {
@@ -60,7 +57,7 @@ class Bus
         // Подготавливаем задачи
         $this->prepareTasks($event, $members);
         
-        if ($this->run === false) {
+        if (!$this->run) {
             $this->run();
         }
     }
@@ -69,7 +66,6 @@ class Bus
     public function setHandle($handle, string $method)
     {
         $this->handle = $handle;
-        $this->handleMethod = $method;
     }
     
     // Возвращает участников из допустимых слоёв
