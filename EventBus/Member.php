@@ -63,7 +63,7 @@ class Member
     // Создает задачу
     private function createTask(string $action, array $conditions = [])
     {
-        $task = new Task($this->name, $action, $this->layer, $conditions, $this->handle);
+        $task = new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handle);
 
         return $task;
     }

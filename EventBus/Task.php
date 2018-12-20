@@ -8,6 +8,8 @@ class Task
 {
     private $name;
     
+    private $type;
+    
     private $action;
     
     private $layer;
@@ -18,9 +20,10 @@ class Task
     
     private $handle;
 
-    public function __construct(string $name, string $action, string $layer, array $conditions = [], string $handle = '')
+    public function __construct(string $name, string $type, string $action, string $layer, array $conditions = [], string $handle = '')
     {
         $this->name = $name;
+        $this->type = $type;
         $this->action = $action;
         $this->layer = $layer;
         $this->conditions = $conditions;
@@ -35,6 +38,11 @@ class Task
     public function name()
     {
         return $this->name;
+    }
+    
+    public function type()
+    {
+        return $this->type;
     }
     
     public function action()
