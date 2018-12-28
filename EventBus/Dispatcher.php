@@ -28,9 +28,9 @@ class Dispatcher
     }
 
     // Регистрирует нового участника в шине событий
-    public function register(string $type, string $name, string $layer, $handle = '')
+    public function register(string $type, string $name, string $layer, $handler = '')
     {
-        $member = new Member($type, $name, $layer, $handle);
+        $member = new Member($type, $name, $layer, $handler);
         
         $this->repository->register($member);
         
@@ -54,8 +54,8 @@ class Dispatcher
         $this->bus->addLayer($layer);
     }
     
-    public function setHandle($handle, string $method)
+    public function setHandler($handler, string $method)
     {
-        $this->bus->setHandle($handle, $method);
+        $this->bus->setHandler($handler, $method);
     }
 }

@@ -18,16 +18,16 @@ class Task
     
     private $conditions;
     
-    private $handle;
+    private $handler;
 
-    public function __construct(string $name, string $type, string $action, string $layer, array $conditions = [], string $handle = '')
+    public function __construct(string $name, string $type, string $action, string $layer, array $conditions = [], string $handler = '')
     {
         $this->name = $name;
         $this->type = $type;
         $this->action = $action;
         $this->layer = $layer;
         $this->conditions = $conditions;
-        $this->handle = $handle;
+        $this->handler = $handler;
     }
     
     public function setData(\stdClass $data)
@@ -65,8 +65,8 @@ class Task
         return $this->conditions;
     }
     
-    public function handle()
+    public function handler()
     {
-        return $this->handle;
+        return $this->handler;
     }
 }

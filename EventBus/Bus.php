@@ -22,7 +22,7 @@ class Bus
     private $storage;
     
     // Обработчик задач
-    private $handle;
+    private $handler;
 
     public function __construct(Repository $repository, Storage $storage)
     {
@@ -63,9 +63,9 @@ class Bus
     }
     
     // Устанавливает обработчик задач
-    public function setHandle($handle) : void
+    public function setHandler($handler) : void
     {
-        $this->handle = $handle;
+        $this->handler = $handler;
     }
     
     // Возвращает участников из допустимых слоёв
@@ -139,7 +139,7 @@ class Bus
         $this->run = true;
 
         foreach ($this->iterate() as $task) {
-            $this->handle->run($task);
+            $this->handler->run($task);
         }
         
         $this->run = false;
