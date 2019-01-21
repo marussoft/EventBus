@@ -38,13 +38,9 @@ class Dispatcher
     }
     
     // Принимает новое событие
-    public function dispatch(string $subject, string $event, $event_data = null)
+    public function dispatch(string $subject, string $event, $event_data = [])
     {
-        $data = new \stdClass();
-        
-        $data->eventData = $event_data;
-    
-        $event = new Event($subject, $event, $data);
+        $event = new Event($subject, $event, $event_data);
         
         $this->bus->event($event);
     }
@@ -54,8 +50,8 @@ class Dispatcher
         $this->bus->addLayer($layer);
     }
     
-    public function setHandler($handler, string $method)
+    public function setHandler($handler)
     {
-        $this->bus->setHandler($handler, $method);
+        $this->bus->setHandler($handler);
     }
 }

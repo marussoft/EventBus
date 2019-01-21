@@ -30,7 +30,7 @@ class Task
         $this->handler = $handler;
     }
     
-    public function setData(\stdClass $data)
+    public function setData($data)
     {
         $this->data = $data;
     }
