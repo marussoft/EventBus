@@ -17,8 +17,9 @@
     },
     "require": {
         "php": "^7.0",
-        "marussia/dependency-injection": "dev-master",
+        "marussia/dependency-injection": "dev-master"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Marussia\\EventBus\\": "src/"
