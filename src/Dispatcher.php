@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Marussia\Components\EventBus;
+namespace Marussia\EventBus;
 
-use Marussia\Components\DependencyInjection\Container as Container;
+use Marussia\DependencyInjection\Container as Container;
 
 class Dispatcher
 {

@@ -1,0 +1,19 @@
+{
+    "name": "marussia/event-bus",
+    "description": "Marussia event bus",
+    "license": "MIT",
+    "keywords": [
+        "event-bus"
+    ],
+    "support": {
+        "docs": "https://docs.marussia.org/event-bus/"
+    },
+    "require": {
+        "php": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Marussia\\EventBus\\": "src/"
+        }
+    }
+}

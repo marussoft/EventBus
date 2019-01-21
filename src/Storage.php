@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Marussia\Components\EventBus;
+namespace Marussia\EventBus;
 
 class Storage
 {
