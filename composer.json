@@ -1,15 +1,23 @@
 {
     "name": "marussia/event-bus",
+    "type": "library",
     "description": "Marussia event bus",
     "license": "MIT",
     "keywords": [
         "event-bus"
     ],
+    "authors": [
+        {
+            "name": "Mikhail Ilinsky",
+            "email": "mail@milinsky.ru"
+        }
+    ],
     "support": {
         "docs": "https://docs.marussia.org/event-bus/"
     },
     "require": {
-        "php": "^7.0"
+        "php": "^7.0",
+        "marussia/dependency-injection": "dev-master",
     },
     "autoload": {
         "psr-4": {
