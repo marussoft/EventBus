@@ -87,32 +87,30 @@ class Bus
     // Подготавливает задачи для события
     private function prepareTasks(Event $event, array $members) : void
     {
-        $task = null;
-        
         // Проходим по всем слушателям
         foreach($members as $member) {
-            // Получаем задачу если участник подписан на событие
-            $task = $member->getTask($event->subject(), $event->eventName());
+        
+            if ($member->isSubscribed($event->subject(), $event->eventName())) {
             
-            if (null !== $task) {
-                // Если участник подписан на соботие то обрабатываем его
-                $this->process($task, $event);
+                // Получаем задачу если участник подписан на событие
+                $tasks = $member->getTasks($event->subject(), $event->eventName(), $event->eventData());
+                
+                $this->process($tasks, $event);
             }
         }
     }
     
-    // Обрабатывает задачу для слушателя
-    private function process($task, $event) : void
+    // Обрабатывает задачи для слушателя
+    private function process(array $tasks) : void
     {
-        $task->setData($event->eventData());
-    
-        // Проверяем выполнены ли условия
-        if ($this->storage->exists($task->conditions())) {
+        foreach ($tasks as $task) {
+            // Проверяем выполнены ли условия
+            if ($this->storage->exists($task->conditions())) {
 
-            // Помещаем задачу в очередь задач на выполнение
-            $this->taskQueue->enqueue($task);
-            
-        } else {
+                // Помещаем задачу в очередь задач на выполнение
+                $this->taskQueue->enqueue($task);
+                continue;
+            }
             // Иначе помещаем в отложенные
             $this->held[] = $task;
         }

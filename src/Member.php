@@ -32,17 +32,35 @@ class Member
     // Создает новую подписку на событие Type.Name.Event
     public function subscribe(string $subject, string $action, array $conditions = [])
     {
-        $this->subscribe[$subject] = $this->createTask($action, $conditions);
+        $this->subscribe[$subject][$action] = $conditions;
         
         return $this;
     }
     
-    // Возвращает задачи для события
-    public function getTask(string $subject, string $event)
+    // Прверяет подписан ли участник на событие
+    public function isSubscribed(string $subject, string $event)
     {
-        if (isset($this->subscribe[$subject . '.' . $event])) {
-            return $this->subscribe[$subject . '.' . $event];
+        return isset($this->subscribe[$subject . '.' . $event]);
+    }
+    
+    // Возвращает задачи для события
+    public function getTasks(string $subject, string $event, $data = null)
+    {
+        $subscribe = $this->subscribe[$subject . '.' . $event];
+    
+        foreach ($subscribe as $action => $conditions) {
+            $tasks[$action] = $this->createTask($action, $conditions);
+            $tasks[$action]->setData($data);
         }
+        
+        return $tasks;
+    }
+    
+    public function createTask($action, $conditions = [])
+    {
+        $task = new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handler);
+
+        return $task;
     }
     
     public function name()
@@ -58,14 +76,6 @@ class Member
     public function type()
     {
         return $this->type;
-    }
-    
-    // Создает задачу
-    private function createTask(string $action, array $conditions = [])
-    {
-        $task = new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handler);
-
-        return $task;
     }
     
 }
