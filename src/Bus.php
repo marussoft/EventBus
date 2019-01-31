@@ -32,8 +32,6 @@ class Bus
     
         $this->taskQueue = new \SplQueue;
         $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
-        
-        $this->run = false;
     }
     
     // Добавляет новый слой событий
@@ -57,9 +55,7 @@ class Bus
         // Подготавливаем задачи
         $this->prepareTasks($event, $members);
         
-        if (!$this->run) {
-            $this->run();
-        }
+        $this->run();
     }
     
     // Устанавливает обработчик задач
@@ -92,7 +88,7 @@ class Bus
         
             if ($member->isSubscribed($event->subject(), $event->eventName())) {
             
-                // Получаем задачу если участник подписан на событие
+                // Получаем задачи если участник подписан на событие
                 $tasks = $member->getTasks($event->subject(), $event->eventName(), $event->eventData());
                 
                 $this->process($tasks, $event);
@@ -134,13 +130,9 @@ class Bus
     // Запускает очередь задач
     private function run() : void
     {
-        $this->run = true;
-
         foreach ($this->iterate() as $task) {
             $this->handler->run($task);
         }
-        
-        $this->run = false;
     }
     
     // Итерирует задачи в очереди

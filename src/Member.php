@@ -58,9 +58,7 @@ class Member
     
     public function createTask($action, $conditions = [])
     {
-        $task = new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handler);
-
-        return $task;
+        return new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handler);
     }
     
     public function name()

@@ -26,10 +26,4 @@ class Storage
         }
         return true;
     }
-    
-    public function data(string $subject, string $event)
-    {
-        return $this->events[$subject . '.' . $event] ?? null;
-    }
-
 }
