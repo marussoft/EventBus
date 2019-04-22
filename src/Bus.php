@@ -6,16 +6,10 @@ namespace Marussia\EventBus;
 
 class Bus
 {
-    // Репозиторий участников шины событий
-    private $repository;
-    
-    // Массив слоёв
-    private $layers;
-    
     // Массив отложенных задач
     private $held = [];
     
-    // Очередь текущих задач
+    // Очередь задач
     private $taskQueue;
     
     // Хранилище полученых событий
@@ -24,91 +18,48 @@ class Bus
     // Обработчик задач
     private $handler;
 
-    public function __construct(Repository $repository, Storage $storage)
+    public function __construct(Storage $storage, FilterManager $filter)
     {
-        $this->repository = $repository;
-    
         $this->storage = $storage;
+        $this->filter = $filter;
     
         $this->taskQueue = new \SplQueue;
         $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
     }
     
-    // Добавляет новый слой событий
-    public function addLayer(string $layer) : void
+    // Обрабатывает задачи для слушателя
+    public function addTask(Event $event, Task $task) : void
     {
-        $this->layers[] = $layer;
-    }
-    
-    // Обрабатывает принятое соботые
-    public function event(Event $event) : void
-    {
-        // Помещаем событие в хранилище
         $this->storage->register($event);
-        
-        // Проверяем отложенные задачи
+    
         $this->checkHeld();
-        
-        // Получаем участников для события
-        $members = $this->getAccessMembers($event->subject());
-        
-        // Подготавливаем задачи
-        $this->prepareTasks($event, $members);
-        
-        $this->run();
+    
+        if ($this->storage->exists($task->conditions())) {
+            // Помещаем задачу в очередь задач на выполнение
+            $this->taskQueue->enqueue($task);
+            return;
+        }
+        // Иначе помещаем в отложенные
+        $this->held[] = $task;
     }
     
-    // Устанавливает обработчик задач
-    public function setHandler($handler) : void
+    public function setHandler(HandlerInterface $handler) : void
     {
         $this->handler = $handler;
     }
     
-    // Возвращает участников из допустимых слоёв
-    private function getAccessMembers(string $subject) : array
+    public function addFilter(FilterInterface $filter)
     {
-        // Получаем имя слоя по владельцу события
-        $layer = $this->repository->getMemberLayer($subject);
-
-        // Получаем ключ слоя
-        $num = array_search($layer, $this->layers);
-        
-        // Получаем массив слоёв доступных для события
-        $layers = array_slice($this->layers, 0, $num + 1);
-        
-        // Возвращаем участников из массива слоев
-        return $this->repository->getMembersByLayers($layers);
+        $this->filter->addFilter($filter);
     }
     
-    // Подготавливает задачи для события
-    private function prepareTasks(Event $event, array $members) : void
+    // Запускает очередь задач
+    public function run() : void
     {
-        // Проходим по всем слушателям
-        foreach($members as $member) {
-        
-            if ($member->isSubscribed($event->subject(), $event->eventName())) {
+        foreach ($this->iterate() as $task) {
+            $$this->filter->run($task);
             
-                // Получаем задачи если участник подписан на событие
-                $tasks = $member->getTasks($event->subject(), $event->eventName(), $event->eventData());
-                
-                $this->process($tasks, $event);
-            }
-        }
-    }
-    
-    // Обрабатывает задачи для слушателя
-    private function process(array $tasks) : void
-    {
-        foreach ($tasks as $task) {
-            // Проверяем выполнены ли условия
-            if ($this->storage->exists($task->conditions())) {
-
-                // Помещаем задачу в очередь задач на выполнение
-                $this->taskQueue->enqueue($task);
-                continue;
-            }
-            // Иначе помещаем в отложенные
-            $this->held[] = $task;
+            $this->handler->run($task);
         }
     }
     
@@ -124,14 +75,6 @@ class Bus
                 // Удаляем задачу из отложенных
                 unset($this->held[$key]);
             }
-        }
-    }
-
-    // Запускает очередь задач
-    private function run() : void
-    {
-        foreach ($this->iterate() as $task) {
-            $this->handler->run($task);
         }
     }
     

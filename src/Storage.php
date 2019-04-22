@@ -20,10 +20,10 @@ class Storage
         }
         
         foreach ($data as $subject => $event) {
-            if (!array_key_exists($subject . '.' . $event, $this->events)) {
-                return false;
+            if (array_key_exists($subject . '.' . $event, $this->events)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

@@ -8,14 +8,14 @@ class Event
 {
     private $subject;
     
-    private $eventName;
+    private $name;
     
     private $data;
 
     public function __construct(string $subject, string $event, $data = null)
     {
         $this->subject = $subject;
-        $this->eventName = $event;
+        $this->name = $event;
         $this->data = $data;
     }
     
@@ -24,12 +24,12 @@ class Event
         return $this->subject;
     }
     
-    public function eventName()
+    public function name()
     {
-        return $this->eventName;
+        return $this->name;
     }
     
-    public function eventData()
+    public function data()
     {
         return $this->data;
     }
