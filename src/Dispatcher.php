@@ -24,6 +24,9 @@ class Dispatcher
     // Менеджер задач
     private $taskManager;
     
+    // Фабрика событий
+    private $factory;
+    
     // Контейнер
     private $container;
     
@@ -40,6 +43,8 @@ class Dispatcher
         $this->filter = $this->container->instance(FilterManager::class);
         
         $this->taskManager = $this->container->instance(TaskManager::class);
+        
+        $this->factory = $this->container->instance(EventFactory::class);
     }
     
     // Добавляет новый слой событий
@@ -75,7 +80,7 @@ class Dispatcher
     // Принимает новое событие
     public function dispatch(string $subject, string $event, $event_data = []) : void
     {
-        $event = new Event($subject, $event, $event_data);
+        $event = $this->factory->create($subject, $event, $event_data);
         
         $access_layers = $this->layerManager->getAccessLayers($event);
         
