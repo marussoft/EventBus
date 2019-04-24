@@ -46,7 +46,7 @@ class Bus
     // Запускает обработку задачи
     public function run() : void
     {
-        $this->handler->handle($this->taskQueue->pop(););
+        $this->handler->handle($this->taskQueue->pop());
         
         $this->iterate();
     }
