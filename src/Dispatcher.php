@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marussia\EventBus;
 
 use Marussia\DependencyInjection\Container as Container;
+use Marussia\EventBus\Contracts\FilterInterface;
 
 class Dispatcher
 {
@@ -16,6 +17,12 @@ class Dispatcher
     
     // Менеджер слоев
     private $layerManager;
+    
+    // Менеджер фильтров
+    private $filter;
+    
+    // Менеджер задач
+    private $taskManager;
     
     // Контейнер
     private $container;
@@ -29,8 +36,30 @@ class Dispatcher
         $this->bus = $this->container->instance(Bus::class);
         
         $this->layerManager = $this->container->instance(LayerManager::class);
+        
+        $this->filter = $this->container->instance(FilterManager::class);
+        
+        $this->taskManager = $this->container->instance(TaskManager::class);
     }
-
+    
+    // Добавляет новый слой событий
+    public function addLayer(string $layer) : void
+    {
+        $this->layerManager->addLayer($layer);
+    }
+    
+    // Устанавливает обработчики для менеджера задач
+    public function setHandlersMap(array $map) : void
+    {
+        $this->taskManager->setHandlersMap($map);
+    }
+    
+    // Добавляет фильтр в менеджер фильтров
+    public function addFilter(FilterInterface $filter) : void
+    {
+        $this->filter->addFilter($filter);
+    }
+    
     // Регистрирует нового участника в шине событий
     public function register(string $type, string $name, string $layer, $handler = '') : Member
     {
@@ -41,12 +70,6 @@ class Dispatcher
         $this->layerManager->register($type . '.' . $name, $layer);
         
         return $member;
-    }
-    
-    // Добавляет новый слой событий
-    public function addLayer(string $layer) : void
-    {
-        $this->layerManager->addLayer($layer);
     }
     
     // Принимает новое событие
@@ -61,16 +84,6 @@ class Dispatcher
         
         // Создаем задачи
         $this->createTasks($event, $members);
-    }
-    
-    public function addLayer(string $layer) : void
-    {
-        $this->bus->addLayer($layer);
-    }
-    
-    public function setHandler(HandlerInterface $handler) : void
-    {
-        $this->bus->setHandler($handler);
     }
     
     // Создает задачи для события // Ошибка

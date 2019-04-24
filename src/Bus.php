@@ -18,10 +18,10 @@ class Bus
     // Обработчик задач
     private $handler;
 
-    public function __construct(Storage $storage, FilterManager $filter)
+    public function __construct(Storage $storage, TaskManager $task_manager)
     {
         $this->storage = $storage;
-        $this->filter = $filter;
+        $this->handler = $task_manager;
     
         $this->taskQueue = new \SplQueue;
         $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
@@ -43,24 +43,12 @@ class Bus
         $this->held[] = $task;
     }
     
-    public function setHandler(HandlerInterface $handler) : void
-    {
-        $this->handler = $handler;
-    }
-    
-    public function addFilter(FilterInterface $filter)
-    {
-        $this->filter->addFilter($filter);
-    }
-    
-    // Запускает очередь задач
+    // Запускает обработку задачи
     public function run() : void
     {
-        foreach ($this->iterate() as $task) {
-            $$this->filter->run($task);
-            
-            $this->handler->run($task);
-        }
+        $this->handler->handle($this->taskQueue->pop(););
+        
+        $this->iterate();
     }
     
     // Проверяет возможность выполнения отложенных задач
@@ -79,10 +67,10 @@ class Bus
     }
     
     // Итерирует задачи в очереди
-    private function iterate() : \Traversable
+    private function iterate() : void
     {
-        while(!$this->taskQueue->isEmpty()) {
-            yield $this->taskQueue->pop();
+        if (!$this->taskQueue->isEmpty()) {
+            $this->run();
         }
     }
 }

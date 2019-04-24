@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
+use Marussia\EventBus\Contracts\FilterInterface;
+
 class Filter
 {
     // Массив фильтров
     private $filters;
     
-    // задача на обработку
+    // Задача на обработку
     private $task;
-    
-    // Слудующий обработчик
-    private $handler;
-
-    public function __construct()
-    {
-        $this->filters = [];
-    }
     
     public function addFilter(FilterInterface $filter)
     {
@@ -31,14 +25,11 @@ class Filter
         $this->task = $task;
         
         if (empty($this->filters)) {
-        
-            $this->nextHandler();
-            
-        } else {
-        
-            reset($this->filters);
-            $this->runFilter();
+            return;
         }
+        
+        reset($this->filters);
+        $this->runFilter();
     }
     
     // Запускает следующий фильтр
@@ -49,7 +40,6 @@ class Filter
         }
     
         if (next($this->filters) === false) {
-            $this->nextHandler();
             return;
         }
         
@@ -69,12 +59,5 @@ class Filter
 
         $filter->run($this->task, $this);
     }
-    
-    // Передает задачу в следующий обработчик
-    private function nextHandler() : void
-    {
-        $this->handler->run($this->task);
-    }
-    
 }
  
