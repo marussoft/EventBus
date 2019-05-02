@@ -30,7 +30,7 @@ class Bus
     // Обрабатывает задачи для слушателя
     public function addTask(Event $event, Task $task) : void
     {
-        $this->storage->register($event);
+        $this->storage->save($event);
     
         $this->checkHeld();
     
@@ -47,6 +47,7 @@ class Bus
     public function run() : void
     {
         $this->handler->handle($this->taskQueue->pop());
+        // runed = true
         
         $this->iterate();
     }

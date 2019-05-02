@@ -12,8 +12,8 @@ class Dispatcher
     // Репозиторий всех участников
     private $repository;
     
-    // Шина событий
-    private $bus;
+    // Менеджер подписок
+    private $threadManager;
     
     // Менеджер слоев
     private $layerManager;
@@ -30,13 +30,13 @@ class Dispatcher
     // Контейнер
     private $container;
     
-    public function __construct()
+    public function __construct(Container $container)
     {
-        $this->container = new Container;
+        $this->container = $container;
         
         $this->repository = $this->container->instance(Repository::class);
         
-        $this->bus = $this->container->instance(Bus::class);
+        $this->threadManager = $this->container->instance(ThreadManager::class);
         
         $this->layerManager = $this->container->instance(LayerManager::class);
         
@@ -77,7 +77,7 @@ class Dispatcher
         return $member;
     }
     
-    // Принимает новое событие
+    // Принимает новое событие. Нить неизвестна
     public function dispatch(string $subject, string $event, $event_data = []) : void
     {
         $event = $this->factory->create($subject, $event, $event_data);
@@ -87,26 +87,13 @@ class Dispatcher
         // Получаем участников из допустимых слоёв
         $members = $this->repository->getMembersByLayers($access_layers);
         
-        // Создаем задачи
-        $this->createTasks($event, $members);
+        // Создаем задачи. Текущая или корневая
+        $this->threadManager->dispatchEvent($event, $members);
     }
     
-    // Создает задачи для события // Ошибка
-    private function createTasks(Event $event, array $members) : void
+    // Текущая задача еще не выполнена. Ожидает.
+    public function newThread(// started_service.action.even_return_data)
     {
-        // Проходим по всем допустимым слушателям
-        foreach($members as $member) {
-        
-            if (!$member->isSubscribed($event->subject(), $event->name())) {
-                continue;
-            }
-            
-            $tasks = $member->getTasks($event->subject(), $event->name(), $event->data());
-            
-            // Создаем задачи если участник подписан на событие
-            foreach ($tasks as $task) {
-                $this->bus->addTask($event, $task);
-            }
-        }
+        return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
     }
 }

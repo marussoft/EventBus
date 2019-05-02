@@ -42,8 +42,8 @@ class TaskManager extends Container
         $this->run();
     }
     
-    // Передает принятую задачу в обработчик
-    public function prepare($task) : void
+    // Подготавливает принятую задачу в обработчик
+    private function prepare($task) : void
     {
         if (empty($task->handler())) {
             $this->handler = $this->classMap[$task->type()];
@@ -56,7 +56,7 @@ class TaskManager extends Container
         }
     }
     
-    // Запускает фильтр для задачи
+    // Запускает фильтры для задачи
     private function filter()
     {
         $this->filter->run($this->task);
