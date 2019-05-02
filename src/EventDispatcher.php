@@ -7,7 +7,7 @@ namespace Marussia\EventBus;
 use Marussia\DependencyInjection\Container as Container;
 use Marussia\EventBus\Contracts\FilterInterface;
 
-class Dispatcher
+class EventDispatcher
 {
     // Репозиторий всех участников
     private $repository;
@@ -32,7 +32,7 @@ class Dispatcher
     
     public function __construct(Container $container)
     {
-        $this->container = $container;
+        $this->container = $container; // ?
         
         $this->repository = $this->container->instance(Repository::class);
         
@@ -40,11 +40,11 @@ class Dispatcher
         
         $this->layerManager = $this->container->instance(LayerManager::class);
         
-        $this->filter = $this->container->instance(FilterManager::class);
+        $this->filter = $this->container->instance(FilterManager::class); // ?
         
         $this->taskManager = $this->container->instance(TaskManager::class);
         
-        $this->factory = $this->container->instance(EventFactory::class);
+        $this->factory = $this->container->instance(EventFactory::class); // ?
     }
     
     // Добавляет новый слой событий
@@ -77,7 +77,7 @@ class Dispatcher
         return $member;
     }
     
-    // Принимает новое событие. Нить неизвестна
+    // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
     public function dispatch(string $subject, string $event, $event_data = []) : void
     {
         $event = $this->factory->create($subject, $event, $event_data);
@@ -87,13 +87,16 @@ class Dispatcher
         // Получаем участников из допустимых слоёв
         $members = $this->repository->getMembersByLayers($access_layers);
         
-        // Создаем задачи. Текущая или корневая
+        // Создаем задачи. Текущая или корневая // Первая задача // Вторая задача новая ветка внутри newThread
         $this->threadManager->dispatchEvent($event, $members);
     }
     
-    // Текущая задача еще не выполнена. Ожидает.
+    // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
     public function newThread(// started_service.action.even_return_data)
     {
+        $member = $this->repository->getMember($starter);
+        
+        $this->threadManager->newThread(// Создать таск из started_service.action.even_return_data);
         return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
     }
 }
