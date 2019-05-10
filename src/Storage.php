@@ -8,7 +8,7 @@ class Storage
 {
     private $events = [];
 
-    public function register(Event $event)
+    public function save(Event $event)
     {
         $this->events[$event->subject() . '.' . $event->eventName()] = $event->eventData();
     }
