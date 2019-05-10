@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
-use Marussia\DependencyInjection\Container as Container;
-use Marussia\EventBus\Contracts\FilterInterface;
-
 class EventDispatcher
 {
     // Репозиторий всех участников
@@ -18,63 +15,19 @@ class EventDispatcher
     // Менеджер слоев
     private $layerManager;
     
-    // Менеджер фильтров
-    private $filter;
-    
-    // Менеджер задач
-    private $taskManager;
-    
     // Фабрика событий
     private $factory;
     
-    // Контейнер
-    private $container;
     
-    public function __construct(Container $container)
+    public function __construct(Repository $repository, ThreadManager $thread_manager, EventFactory $factory, LayerManager $layer_manager)
     {
-        $this->container = $container; // ?
+        $this->repository = $repository;
         
-        $this->repository = $this->container->instance(Repository::class);
+        $this->threadManager = $thread_manager;
         
-        $this->threadManager = $this->container->instance(ThreadManager::class);
+        $this->layerManager = $layer_manager;
         
-        $this->layerManager = $this->container->instance(LayerManager::class);
-        
-        $this->filter = $this->container->instance(FilterManager::class); // ?
-        
-        $this->taskManager = $this->container->instance(TaskManager::class);
-        
-        $this->factory = $this->container->instance(EventFactory::class); // ?
-    }
-    
-    // Добавляет новый слой событий
-    public function addLayer(string $layer) : void
-    {
-        $this->layerManager->addLayer($layer);
-    }
-    
-    // Устанавливает обработчики для менеджера задач
-    public function setHandlersMap(array $map) : void
-    {
-        $this->taskManager->setHandlersMap($map);
-    }
-    
-    // Добавляет фильтр в менеджер фильтров
-    public function addFilter(FilterInterface $filter) : void
-    {
-        $this->filter->addFilter($filter);
-    }
-    
-    // Регистрирует нового участника в шине событий
-    public function register(string $type, string $name, string $layer, $handler = '') : Member
-    {
-        $member = new Member($type, $name, $layer, $handler);
-        
-        $this->repository->register($member);
-        
-        $this->layerManager->register($type . '.' . $name, $layer);
-        
-        return $member;
+        $this->factory = $factory;
     }
     
     // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
@@ -82,6 +35,7 @@ class EventDispatcher
     {
         $event = $this->factory->create($subject, $event, $event_data);
         
+        // Фильтруем событие по слою
         $access_layers = $this->layerManager->getAccessLayers($event);
         
         // Получаем участников из допустимых слоёв
@@ -91,12 +45,8 @@ class EventDispatcher
         $this->threadManager->dispatchEvent($event, $members);
     }
     
-    // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
-    public function newThread(// started_service.action.even_return_data)
+    public function result(Result $result)
     {
-        $member = $this->repository->getMember($starter);
         
-        $this->threadManager->newThread(// Создать таск из started_service.action.even_return_data);
-        return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
     }
 }

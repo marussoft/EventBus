@@ -4,74 +4,76 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
+use Marussia\EventBus\Contracts\FilterInterface;
+use Marussia\EventBus\Factories\MemberFactory;
+use Marussia\DependencyInjection\Container;
+
 class Bus
 {
-    // Массив отложенных задач
-    private $held = [];
-    
-    // Очередь задач
-    private $taskQueue;
-    
-    // Хранилище полученых событий
-    private $storage;
-    
-    // Обработчик задач
-    private $handler;
+    private $memberFactory;
 
-    public function __construct(Storage $storage, TaskManager $task_manager)
+    public function __construct(
+        MemberFactory $member_factory,
+        Repository $repository, 
+        LayerManager $layer_manager,
+        EventDispatcher $dispatcher,
+        TaskManager $task_manager,
+        FilterManager $filter_manager,
+        array $handlers_map
+    )
     {
-        $this->storage = $storage;
-        $this->handler = $task_manager;
-    
-        $this->taskQueue = new \SplQueue;
-        $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
+        $this->memberFactory = $member_factory;
+        $this->repository = $repository;
+        $this->layerManager = $layer_manager;
+        $this->dispatcher = $dispatcher;
+        $this->filterManager = $filter_manager;
+        $this->taskManager = $task_manager;
+        $this->taskManager->setHandlersMap($handlers_map);
     }
     
-    // Обрабатывает задачи для слушателя
-    public function addTask(Event $event, Task $task) : void
+    public static function create(array $handlers_map) : Bus
     {
-        $this->storage->save($event);
-    
-        $this->checkHeld();
-    
-        if ($this->storage->exists($task->conditions())) {
-            // Помещаем задачу в очередь задач на выполнение
-            $this->taskQueue->enqueue($task);
-            return;
-        }
-        // Иначе помещаем в отложенные
-        $this->held[] = $task;
-    }
-    
-    // Запускает обработку задачи
-    public function run() : void
-    {
-        $this->handler->handle($this->taskQueue->pop());
-        // runed = true
+        $container = new Container;
         
-        $this->iterate();
+        return $container->instance(Bus::class, $handlers_map);
     }
     
-    // Проверяет возможность выполнения отложенных задач
-    private function checkHeld() : void
+    // Регистрирует нового участника в шине событий
+    public function register(string $type, string $name, string $layer, string $handler = '') : Member
     {
-        foreach($this->held as $key => $task) {
-            // Проверяем выполнены ли условия
-            if ($this->storage->exists($task->conditions())) {
-
-                // Помещаем задачу в массив задач на выполнение
-                $this->taskQueue->enqueue($task);
-                // Удаляем задачу из отложенных
-                unset($this->held[$key]);
-            }
-        }
+        $member = $this->memberFactory->create(compact($type, $name, $layer, $handler));
+        
+        $this->repository->register($member);
+        
+        $this->layerManager->register($type . '.' . $name, $layer);
+        
+        return $member;
     }
     
-    // Итерирует задачи в очереди
-    private function iterate() : void
+    // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
+    public function newThread(// started_service.action.even_return_data)
     {
-        if (!$this->taskQueue->isEmpty()) {
-            $this->run();
-        }
+        $member = $this->repository->getMember($starter);
+        
+        $this->threadManager->newThread(// Создать таск из started_service.action.even_return_data);
+        return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
+    }
+    
+    // Добавляет новый слой событий
+    public function addLayer(string $layer) : void
+    {
+        $this->layerManager->addLayer($layer);
+    }
+    
+    // Устанавливает обработчики для менеджера задач
+    public function setHandlersMap(array $map) : void
+    {
+        $this->taskManager->setHandlersMap($map);
+    }
+    
+    // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
+    public function dispatch(string $subject, string $event, $event_data = []) : void
+    {
+        $this->dispatcher->dispatch(string $subject, string $event, $event_data = []);
     }
 }

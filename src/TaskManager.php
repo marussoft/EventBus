@@ -19,9 +19,12 @@ class TaskManager extends Container
     
     private $filter;
     
-    public function __construct(FilterManager $filter)
+    private $dispatcher;
+    
+    public function __construct(FilterManager $filter, EventDispatcher $dispatcher)
     {
         $this->filter = $filter;
+        $this->dispatcher = $dispatcher;
     }
 
     public function setHandlersMap(array $map) : void
@@ -62,9 +65,10 @@ class TaskManager extends Container
         $this->filter->run($this->task);
     }
     
-    // Передает задачу в обработчик
+    // Передает задачу в обработчик // Здесь происходит ожидание результата
     private function run() : void
     {
-        $this->get($this->handler)->run($this->task);
+        // Исключение здесь
+        $this->dispatcher->result($this->get($this->handler)->run($this->task));
     }
 }
