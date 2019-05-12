@@ -76,4 +76,9 @@ class Bus
     {
         $this->dispatcher->dispatch(string $subject, string $event, $event_data = []);
     }
+    
+    public function result()
+    {
+    
+    }
 }
