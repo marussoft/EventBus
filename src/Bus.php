@@ -6,6 +6,8 @@ namespace Marussia\EventBus;
 
 use Marussia\EventBus\Contracts\FilterInterface;
 use Marussia\EventBus\Factories\MemberFactory;
+use Marussia\EventBus\Factories\ResultFactory;
+use Marussia\EventBus\Entities\Result;
 use Marussia\DependencyInjection\Container;
 
 class Bus
@@ -14,6 +16,7 @@ class Bus
 
     public function __construct(
         MemberFactory $member_factory,
+        ResultFactory $result_factory,
         Repository $repository, 
         LayerManager $layer_manager,
         EventDispatcher $dispatcher,
@@ -23,6 +26,7 @@ class Bus
     )
     {
         $this->memberFactory = $member_factory;
+        $this->resultFactory = $result_factory;
         $this->repository = $repository;
         $this->layerManager = $layer_manager;
         $this->dispatcher = $dispatcher;
@@ -77,8 +81,8 @@ class Bus
         $this->dispatcher->dispatch(string $subject, string $event, $event_data = []);
     }
     
-    public function result()
+    public function result(array $params) : Result
     {
-    
+        return $this->resultFactory->create($params);
     }
 }
