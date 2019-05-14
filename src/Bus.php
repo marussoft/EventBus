@@ -21,8 +21,7 @@ class Bus
         LayerManager $layer_manager,
         EventDispatcher $dispatcher,
         TaskManager $task_manager,
-        FilterManager $filter_manager,
-        array $handlers_map
+        FilterManager $filter_manager
     )
     {
         $this->memberFactory = $member_factory;
@@ -32,7 +31,6 @@ class Bus
         $this->dispatcher = $dispatcher;
         $this->filterManager = $filter_manager;
         $this->taskManager = $task_manager;
-        $this->taskManager->setHandlersMap($handlers_map);
     }
     
     public static function create(array $handlers_map) : Bus
