@@ -13,7 +13,7 @@ class Repository
     private $members;
     
     // Регистрирует участника в репозитории шины событий
-    public function register(Member $member)
+    public function save(Member $member)
     {
         $this->members[$member->type() . '.' . $member->name()] = $member;
         

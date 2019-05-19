@@ -16,12 +16,12 @@ class Thread
     private $storage;
     
     // Обработчик задач
-    private $handler;
+    private $taskManager;
 
     public function __construct(Storage $storage, TaskManager $task_manager)
     {
         $this->storage = $storage;
-        $this->handler = $task_manager;
+        $this->taskManager = $task_manager;
     
         $this->taskQueue = new \SplQueue;
         $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
@@ -46,7 +46,7 @@ class Thread
     // Запускает обработку задачи
     public function run() : void
     {
-        $this->handler->handle($this->taskQueue->pop());
+        $this->taskManager->handle($this->taskQueue->pop());
         // runed = true
         
         $this->iterate();

@@ -18,6 +18,9 @@ class EventDispatcher
     // Фабрика событий
     private $factory;
     
+    private $currentMember;
+    
+    private $currentTask;
     
     public function __construct(Repository $repository, ThreadManager $thread_manager, EventFactory $factory, LayerManager $layer_manager)
     {
@@ -31,10 +34,8 @@ class EventDispatcher
     }
     
     // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
-    public function dispatch(string $subject, string $event, $event_data = []) : void
+    public function dispatch(Event $event) : void
     {
-        $event = $this->factory->create($subject, $event, $event_data);
-        
         // Фильтруем событие по слою
         $access_layers = $this->layerManager->getAccessLayers($event);
         
@@ -45,8 +46,9 @@ class EventDispatcher
         $this->threadManager->dispatchEvent($event, $members);
     }
     
-    public function result(Result $result)
+    // Возвращает объект ответа
+    public function result($data) : Result
     {
-        
+        return $this->resultFactory->create($this-currentMember, $this->currentTask, $data);
     }
 }

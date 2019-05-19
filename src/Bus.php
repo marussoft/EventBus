@@ -22,8 +22,7 @@ class Bus
         EventDispatcher $dispatcher,
         TaskManager $task_manager,
         FilterManager $filter_manager
-    )
-    {
+    ){
         $this->memberFactory = $member_factory;
         $this->resultFactory = $result_factory;
         $this->repository = $repository;
@@ -33,11 +32,11 @@ class Bus
         $this->taskManager = $task_manager;
     }
     
-    public static function create(array $handlers_map) : Bus
+    public static function create() : Bus
     {
         $container = new Container;
         
-        return $container->instance(Bus::class, $handlers_map);
+        return $container->instance(Bus::class);
     }
     
     // Регистрирует нового участника в шине событий
@@ -45,7 +44,7 @@ class Bus
     {
         $member = $this->memberFactory->create(compact($type, $name, $layer, $handler));
         
-        $this->repository->register($member);
+        $this->repository->save($member);
         
         $this->layerManager->register($type . '.' . $name, $layer);
         
@@ -62,15 +61,17 @@ class Bus
     }
     
     // Добавляет новый слой событий
-    public function addLayer(string $layer) : void
+    public function addLayer(string $layer) : self
     {
         $this->layerManager->addLayer($layer);
+        return $this;
     }
     
     // Устанавливает обработчики для менеджера задач
-    public function setHandlersMap(array $map) : void
+    public function setHandlersMap(array $map) : self
     {
         $this->taskManager->setHandlersMap($map);
+        return $this;
     }
     
     // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
@@ -79,8 +80,14 @@ class Bus
         $this->dispatcher->dispatch(string $subject, string $event, $event_data = []);
     }
     
-    public function result(array $params) : Result
+    // Возвращает объект результата для задачи
+    public function result($data) : Result
     {
-        return $this->resultFactory->create($params);
+        return $this->dispatcher->result($data);
+    }
+    
+    public function command(string $member, string $action)
+    {
+    
     }
 }
