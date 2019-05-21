@@ -6,17 +6,18 @@ namespace Marussia\EventBus;
 
 class TheadManager
 {
-    private $bus;
-
     // Менеджер подписок
     private $subscribeManager;
     
+    private $threadFactory;
+    
     private $thread;
     
-    public function __construct(Bus $bus, SubscribeManager $subscribe_manager)
+    public function __construct(Thread $thread, SubscribeManager $subscribe_manager, ThreadFactory $thread_factory)
     {
-        $this->bus = $bus;
+        $this->thread = $thread;
         $this->subscribeManager = $subscribe_manager;
+        $this->threadFactory = $thread_factory;
     }
     
     // Сохранять текущую если она не в нити
@@ -33,14 +34,24 @@ class TheadManager
         
         foreach ($tasks as $task) {
             // текущая или нет. сохранить ы
-            $this->bus->addTask($event, $task);
+            $this->thread->addTask($event, $task);
         }
     }
 
+    public function dispatchTask($task)
+    {
+        $this->thread->addTask();
+    }
+    
     // Текущая задача еще не выполнена. Ожидает. Нужно создать таск в новой нити
     public function newThread(// started_service.action.even_return_data)
     {
         
         return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
+    }
+    
+    public function run()
+    {
+        $this->thread->run();
     }
 }

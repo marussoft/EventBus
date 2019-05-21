@@ -46,6 +46,12 @@ class EventDispatcher
         $this->threadManager->dispatchEvent($event, $members);
     }
     
+    public function command(string $member, string $action)
+    {
+        $task = $this->repository->getMember($member)->createTask();
+        $threadManager->dispat
+    }
+    
     // Возвращает объект ответа
     public function result($data) : Result
     {

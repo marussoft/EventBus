@@ -59,7 +59,7 @@ class Thread
             // Проверяем выполнены ли условия
             if ($this->storage->exists($task->conditions())) {
 
-                // Помещаем задачу в массив задач на выполнение
+                // Помещаем задачу в очередь задач на выполнение
                 $this->taskQueue->enqueue($task);
                 // Удаляем задачу из отложенных
                 unset($this->held[$key]);

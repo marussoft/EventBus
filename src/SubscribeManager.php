@@ -19,7 +19,7 @@ class SubscribeManager
             }
             
             // ошибка. нужно получать по одной задаче
-            $tasks = $member->getTasks($event->subject(), $event->name(), $event->data());
+            $tasks[] = $member->getTasks($event->subject(), $event->name(), $event->data());
         }
     }
 }

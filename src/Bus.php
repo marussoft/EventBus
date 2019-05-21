@@ -88,6 +88,11 @@ class Bus
     
     public function command(string $member, string $action)
     {
+        $this->dispatcher->command($member, $action);
+    }
     
+    public function run() : void
+    {
+        $this->threadManager->run();
     }
 }

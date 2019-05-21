@@ -32,7 +32,7 @@ class Member
     // Создает новую подписку на событие Type.Name.Event
     public function subscribe(string $subject, string $action, array $conditions = [])
     {
-        $this->subscribe[$subject][$action] = $conditions;
+        $this->subscribe[$subject][$action][] = $conditions;
         
         return $this;
     }
@@ -56,22 +56,27 @@ class Member
         return $tasks;
     }
     
+    public function getSubscribes()
+    {
+    
+    }
+    
     public function createTask($action, $conditions = [])
     {
         return new Task($this->name, $this->type, $action, $this->layer, $conditions, $this->handler);
     }
     
-    public function name()
+    public function name() : string
     {
         return $this->name;
     }
     
-    public function layer()
+    public function layer() : string
     {
         return $this->layer;
     }
     
-    public function type()
+    public function type() : string
     {
         return $this->type;
     }
