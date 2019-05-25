@@ -73,8 +73,9 @@ class TheadManager
         $this->dispatcher->dispatchNewThread($member, $action);
         
         // Восстанавливаем id родидельской нити
-        $this->currentThreadId = $thread->parrentTreadId;
+        $this->currentThreadId = $thread->parrentThreadId;
 
+        // Возвращаем результат работы нити
         return $this->returnData;
     }
 }
