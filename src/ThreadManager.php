@@ -44,9 +44,9 @@ class TheadManager
         }
     }
 
-    public function addTask(Task $task, string $point) : void
+    public function addTask(Task $task, string $event) : void
     {
-        if ($this->returnPoint === $point) {
+        if ($this->returnPoint === $event->subject . '.' . $event->action) {
             $this->returnData = $event->data;
         }
         $this->threadStorage->get($this->currentThreadId)->addTask($task);
