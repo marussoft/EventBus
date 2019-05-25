@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
-class EventDispatcher
+class Dispatcher
 {
     // Репозиторий всех участников
     private $repository;
@@ -48,13 +48,12 @@ class EventDispatcher
     
     public function command(string $member, string $action)
     {
-        $task = $this->repository->getMember($member)->createTask();
-        $threadManager->dispat
+        $task = $this->repository->getMember($member)->createTask($action);
+        $threadManager->dispatchTask($task);
     }
     
-    // Возвращает объект ответа
-    public function result($data) : Result
+    public function dispatchNewThread(string $member, string $action)
     {
-        return $this->resultFactory->create($this-currentMember, $this->currentTask, $data);
+    
     }
 }

@@ -11,11 +11,17 @@ class TheadManager
     
     private $threadFactory;
     
-    private $thread;
+    private $threadStorage;
     
-    public function __construct(Thread $thread, SubscribeManager $subscribe_manager, ThreadFactory $thread_factory)
+    private $currentThreadId;
+    
+    private $returnPoint;
+    
+    private $returnData;
+    
+    public function __construct(ThreadStorage $thread_storage, SubscribeManager $subscribe_manager, ThreadFactory $thread_factory)
     {
-        $this->thread = $thread;
+        $this->threadStorage = $thread_storage;
         $this->subscribeManager = $subscribe_manager;
         $this->threadFactory = $thread_factory;
     }
@@ -38,20 +44,37 @@ class TheadManager
         }
     }
 
-    public function dispatchTask($task)
+    public function addTask(Task $task, string $point) : void
     {
-        $this->thread->addTask();
+        if ($this->returnPoint === $point) {
+            $this->returnData = $event->data;
+        }
+        $this->threadStorage->get($this->currentThreadId)->addTask($task);
     }
     
-    // Текущая задача еще не выполнена. Ожидает. Нужно создать таск в новой нити
-    public function newThread(// started_service.action.even_return_data)
+    // Из фасада Bus. Текущая задача еще не выполнена. Ожидает. Нужно создать таск в новой нити
+    public function newThread(string $member, string $action, string $return_point) // started_service.action.even_return_data)
     {
+        $current_thread_id = $this->currentThreadId ?? $member;
+    
+        // Создаем нить содержащую id текущей нити
+        $thread = $threadFactory->create($member, $current_thread_id);
         
-        return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
-    }
-    
-    public function run()
-    {
-        $this->thread->run();
+        // Помещаем нить в хранилище
+        $this->threadStorage->register($thread);
+        
+        // Устанавливаем id текущей ветки
+        $this->currentThreadId = $member;
+        
+        // Устанавливаем точку возврата данных
+        $this->returnPoint = $return_point;
+        
+        // Подключаем новую нить
+        $this->dispatcher->dispatchNewThread($member, $action);
+        
+        // Восстанавливаем id родидельской нити
+        $this->currentThreadId = $thread->parrentTreadId;
+
+        return $this->returnData;
     }
 }

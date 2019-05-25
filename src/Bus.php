@@ -52,12 +52,9 @@ class Bus
     }
     
     // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
-    public function newThread(// started_service.action.even_return_data)
+    public function newThread(string $member, string $action, string $return_point)
     {
-        $member = $this->repository->getMember($starter);
-        
-        $this->threadManager->newThread(// Создать таск из started_service.action.even_return_data);
-        return // возврат данных по новой нити в сервис который запросил. Только тогда продолжится выполение корневой задачи
+        return $this->threadManager->newThread($member, $action, $return_point);
     }
     
     // Добавляет новый слой событий
