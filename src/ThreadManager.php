@@ -19,6 +19,10 @@ class TheadManager
     
     private $returnData;
     
+    private $threadOwner;
+    
+    private $runAction;
+    
     public function __construct(ThreadStorage $thread_storage, SubscribeManager $subscribe_manager, ThreadFactory $thread_factory)
     {
         $this->threadStorage = $thread_storage;
@@ -44,6 +48,7 @@ class TheadManager
         }
     }
 
+    // Добавляет задачу в тукущую нить
     public function addTask(Task $task, string $event) : void
     {
         if ($this->returnPoint === $event->subject . '.' . $event->action) {
@@ -53,7 +58,7 @@ class TheadManager
     }
     
     // Из фасада Bus. Текущая задача еще не выполнена. Ожидает. Нужно создать таск в новой нити
-    public function newThread(string $member, string $action, string $return_point) // started_service.action.even_return_data)
+    public function newThread(string $member, string $action, string $return_point) : void
     {
         $current_thread_id = $this->currentThreadId ?? $member;
     
@@ -69,8 +74,20 @@ class TheadManager
         // Устанавливаем точку возврата данных
         $this->returnPoint = $return_point;
         
+        // Устанавливаем владельца нити
+        $this->threadOwner = $member;
+        
+        // Устанавливаем стартовое действие
+        $this->runAction = $action;
+    }
+    
+    public function run()
+    {
         // Подключаем новую нить
-        $this->dispatcher->dispatchNewThread($member, $action);
+        $this->dispatcher->dispatchNewThread($this->threadOwner, $this->runAction);
+        
+        // Запускаем нить
+        $this->thread->run();
         
         // Восстанавливаем id родидельской нити
         $this->currentThreadId = $thread->parrentThreadId;

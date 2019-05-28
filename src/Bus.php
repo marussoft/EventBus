@@ -52,9 +52,10 @@ class Bus
     }
     
     // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
-    public function newThread(string $member, string $action, string $return_point)
+    public function newThread(string $member, string $action, string $return_point) : self
     {
-        return $this->threadManager->newThread($member, $action, $return_point);
+        $this->threadManager->newThread($member, $action, $return_point);
+        return $this;
     }
     
     // Добавляет новый слой событий
@@ -71,25 +72,14 @@ class Bus
         return $this;
     }
     
-    // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
-    public function dispatch(string $subject, string $event, $event_data = []) : void
-    {
-        $this->dispatcher->dispatch(string $subject, string $event, $event_data = []);
-    }
-    
-    // Возвращает объект результата для задачи
-    public function result($data) : Result
-    {
-        return $this->dispatcher->result($data);
-    }
-    
+    // Добавляет новую задачу в текущую нить
     public function command(string $member, string $action)
     {
         $this->dispatcher->command($member, $action);
     }
     
-    public function run() : void
+    public function run()
     {
-        $this->threadManager->run();
+        return $this->threadManager->run();
     }
 }
