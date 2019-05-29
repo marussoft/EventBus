@@ -74,15 +74,6 @@ class TaskManager extends Container
         // 
         $result = $this->get($this->handler)->run($this->task);
         
-        $this->dispatchResult($result);
-    }
-    
-    private function dispatchResult(Result $result)
-    {
-        $event = $this->eventFactory->create($result->subject, $result->event, $result->eventData);
-        
-        // Исключение здесь
-        $this->dispatcher->dispatch($event);
-        
+        $this->dispatcher->resolveResult($result);
     }
 }

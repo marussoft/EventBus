@@ -18,18 +18,33 @@ class Thread
     // Обработчик задач
     private $taskManager;
 
-    public function __construct(Storage $storage, TaskManager $task_manager)
+    private $parrentThreadId
+    
+    private $returnPoint;
+    
+    private $returnData = null;
+    
+    public function __construct(Storage $storage, TaskManager $task_manager, string $parrent_thread_id, string $return_point, Queue $queue)
     {
         $this->storage = $storage;
         $this->taskManager = $task_manager;
+        $this->parrentThreadId = $parrent_thread_id;
+        $this->returnPoint = $return_point;
+        $this->taskQueue = $queue;;
+    }
     
-        $this->taskQueue = new \SplQueue;
-        $this->taskQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
+    public function getParrentThreadId() : string
+    {
+        return $this->parrentThreadId;
     }
     
     // Обрабатывает задачи для слушателя
     public function addTask(Event $event, Task $task) : void
     {
+        if ($this->returnPoint === $event->subject . '.' . $event->action) {
+            $this->returnData = $event->data;
+        }
+    
         $this->storage->save($event);
     
         $this->checkHeld();
@@ -47,8 +62,7 @@ class Thread
     public function run() : void
     {
         $this->taskManager->handle($this->taskQueue->pop());
-        // runed = true
-        
+
         $this->iterate();
     }
     
