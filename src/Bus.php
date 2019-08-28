@@ -40,39 +40,38 @@ class Bus
     }
     
     // Регистрирует нового участника в шине событий
-    public function register(string $type, string $name, string $layer, string $handler = '') : Member
+    public function register(string $name, string $layer) : Member
     {
-        $member = $this->memberFactory->create(compact($type, $name, $layer, $handler));
+        $member = $this->memberFactory->create(compact($name, $layer));
         
         $this->repository->save($member);
         
-        $this->layerManager->register($type . '.' . $name, $layer);
+        $this->layerManager->register($name, $layer);
         
         return $member;
     }
     
-    // Добавляет новый слой событий
-    public function addLayer(string $layer) : self
+    // Добавляет слои
+    public function setLayers(array $layer) : self
     {
-        $this->layerManager->addLayer($layer);
+        $this->layerManager->setLayers($layer);
         return $this;
+    }
+    
+    public function upLayer(string $member, string $action) : void
+    {
+    
     }
     
     // Устанавливает обработчики для менеджера задач
-    public function setHandlersMap(array $map) : self
+    public function setDefaultHandlersMap(array $map) : self
     {
-        $this->taskManager->setHandlersMap($map);
+        $this->taskManager->setDefaultHandlersMap($map);
         return $this;
     }
     
-    // Добавляет новую задачу в текущую нить
-    public function command(string $member, string $action)
+    public function run($data = null)
     {
-        $this->dispatcher->command($member, $action);
-    }
-    
-    public function run()
-    {
-        return $this->threadManager->run();
+        return $this->dispatcher->startLoop($data);
     }
 }
