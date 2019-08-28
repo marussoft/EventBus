@@ -51,13 +51,6 @@ class Bus
         return $member;
     }
     
-    // Текущая задача еще не выполнена она запущена в Bus. Ожидает. Нужно знать владельца (текущую задачу)
-    public function newThread(string $member, string $action, string $return_point) : self
-    {
-        $this->threadManager->newThread($member, $action, $return_point);
-        return $this;
-    }
-    
     // Добавляет новый слой событий
     public function addLayer(string $layer) : self
     {

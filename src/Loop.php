@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
-class Thread
+class Loop
 {
     // Массив отложенных задач
     private $held = [];
@@ -18,7 +18,7 @@ class Thread
     // Обработчик задач
     private $taskManager;
 
-    private $parrentThreadId
+    private $parrentThreadId;
     
     private $returnPoint;
     
