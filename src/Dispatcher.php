@@ -9,9 +9,6 @@ class Dispatcher
     // Репозиторий всех участников
     private $repository;
     
-    // Менеджер подписок
-    private $threadManager;
-    
     // Менеджер слоев
     private $layerManager;
     
@@ -22,45 +19,84 @@ class Dispatcher
     
     private $currentTask;
     
-    private $currentTaskData;
+    private $currentAction;
     
-    public function __construct(Repository $repository, ThreadManager $thread_manager, EventFactory $factory, LayerManager $layer_manager)
+    private $config;
+    
+    private $fileResource;
+    
+    public function __construct(
+        Repository $repository, 
+        EventFactory $factory, 
+        LayerManager $layerManager, 
+        Loop $loop, 
+        ConfigProvider 
+        $config, 
+        FileResource $fileResource
+    )
     {
         $this->repository = $repository;
-        
-        $this->threadManager = $thread_manager;
-        
-        $this->layerManager = $layer_manager;
-        
+        $this->loop = $loop;
+        $this->layerManager = $layerManager;
         $this->factory = $factory;
+        $this->config = $config;
+        $this->fileResource = $fileResource;
     }
     
-    public function command(string $member, string $action, $data = null)
+    // Вызывается из фасада Bus
+    public function startLoop($data = null)
     {
-        // Будет проверка на слои и передача данных в таск
-        $task = $this->repository->getMember($member)->createTask($action);
-        $threadManager->addTask($task);
-    }
-    
-    // Подключает нить // Начало, доделать
-    public function dispatchThread(string $member, string $task, $data)
-    {
+        $this->currentAction = $this->config->getStartedAction();
 
-        $this->eventFactory->create($result->subject, $result->event, $result->eventData);
+        $this->fileResource->plugLayer($this->config->getStartedLayer());
         
-        $this->currentMember = $member;
-        $this->currentTask = $task;
-        $this->currentTaskData = $data;
+        $this->currentMember = $this->repository->getMember($this->config->getStartedMember());
+    
+        $this->currentTask = $this->taskManager->createTask($this->currentMember, $this->currentAction);
+        
+        $this->loop->addTask($this->currentTask);
+        
+        $this->process();
     }
     
-    // Обрабатывает результат текущего таска
-    public function resolveResult(ResultInterface $result)
+    // Обрабатывает результат текущего таска // Начало
+    public function dispatchResult(ResultInterface $result, Task $currentTask)
     {
-        $event = $this->eventFactory->create($result->subject, $result->event, $result->eventData);
+        $event = $this->eventFactory->create($result, $this->currentAction, $this->currentMember);
         
-        // Исключение здесь
-        $this->dispatch($event);
+        $this->eventStorage->add($event); // зависим от EventStorage
+        
+        $this->currentTask = $currentTask;
+        
+        // Получаем допустимые слои для события
+        $accessLayers = $this->layerManager->getAccessLayers($this->currentMember->layer); // ассоциативный по слоям
+        
+        $subscribes = $this->subscribeManager->getSubscribers($this->currentMember, $this->currentAction); // мвссив (содержат conditions)
+        
+        // Получаем подписчиков
+        $subscribers = $this->subscribeManager->getSubscribers($event->subject);
+
+        $tasks = [];
+        
+        foreach ($subscribers as $subscriber) {
+            if (!isset($accessLayers[$subscriber->layer])) {
+                // Исключение
+            }
+            $tasks[] = $this->taskManager->createTask($this->repository->getMember($subscriber->member), $subscriber->member->action);
+        }
+        
+        foreach($tasks as $task) {
+            $this->loop->addTask($this->$task);
+        }
+        
     }
+    
+    
+    
+    
+    
+    
+    
     
     // Принимает новое событие. Нить неизвестна // Первая задача // Вторая задача новая ветка внутри newThread
     private function dispatch(Event $event) : void
@@ -77,5 +113,10 @@ class Dispatcher
         foreach ($tasks as $task) {
             $this->threadManager->addTask($event, $task);
         }
+    }
+    
+    private function process()
+    {
+
     }
 }

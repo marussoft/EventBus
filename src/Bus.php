@@ -16,14 +16,19 @@ class Bus
 
     private $memberDirPath;
     
+    private $dispatcher;
+    
+    private $config;
+    
     public function __construct(
         MemberFactory $member_factory,
         ResultFactory $result_factory,
         Repository $repository, 
         LayerManager $layer_manager,
-        EventDispatcher $dispatcher,
+        Dispatcher $dispatcher,
         TaskManager $task_manager,
-        FilterManager $filter_manager
+        FilterManager $filter_manager,
+        ConfigProvider $config
     ){
         $this->memberFactory = $member_factory;
         $this->resultFactory = $result_factory;
@@ -32,6 +37,7 @@ class Bus
         $this->dispatcher = $dispatcher;
         $this->filterManager = $filter_manager;
         $this->taskManager = $task_manager;
+        $this->config = $config;
     }
     
     public static function create() : Bus
@@ -75,6 +81,12 @@ class Bus
     {
         $this->taskManager->setDefaultHandlersMap($map);
         return $this;
+    }
+    
+    // $startingTask Layer.MemberName.Action
+    public function setStartingTask(string $startingTask)
+    {
+        $this->config->setStartingTask($startingTask);
     }
     
     public function run($data = null)

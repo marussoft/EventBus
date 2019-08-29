@@ -23,7 +23,7 @@ class TaskManager extends Container
     
     private $eventFactory;
     
-    public function __construct(FilterManager $filter, EventDispatcher $dispatcher EventFactory $factory)
+    public function __construct(FilterManager $filter, EventDispatcher $dispatcher, EventFactory $factory)
     {
         $this->filter = $filter;
         $this->dispatcher = $dispatcher;
