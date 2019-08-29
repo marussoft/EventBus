@@ -14,6 +14,8 @@ class Bus
 {
     private $memberFactory;
 
+    private $memberDirPath;
+    
     public function __construct(
         MemberFactory $member_factory,
         ResultFactory $result_factory,
@@ -61,6 +63,11 @@ class Bus
     public function upLayer(string $member, string $action) : void
     {
     
+    }
+    
+    public function setMemberDirPath(string $memberDirPath)
+    {
+        $this->memberDirPath = $memberDirPath;
     }
     
     // Устанавливает обработчики для менеджера задач
