@@ -10,9 +10,11 @@ class LayerManager
     
     private $members;
     
-    public function __construct()
+    private $config;
+    
+    public function __construct(ConfigProvider $config)
     {
-        $this->layers[] = 'App';
+        $this->config = $config;
     }
     
     public function register($subject, $layer)
@@ -20,13 +22,13 @@ class LayerManager
         $this->members[$subject] = $layer;
     }
     
-    public function addLayer(string $layer) : void
+    public function setLayers(array $layers) : void
     {
-        $this->layers[] = $layer;
+        $this->layers = $layers;
     }
     
     // Возвращает допустипый массив слоев
-    private function getAccessLayers(string $subject) : array
+    private function getAccessLayers(string $layer) : array
     {
         // Получаем имя слоя по владельцу события
         $layer = $this->members[$subject];

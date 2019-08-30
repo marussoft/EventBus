@@ -60,9 +60,9 @@ class Bus
     }
     
     // Добавляет слои
-    public function setLayers(array $layer) : self
+    public function setLayers(array $layers) : self
     {
-        $this->layerManager->setLayers($layer);
+        $this->layerManager->setLayers($layers);
         return $this;
     }
     
