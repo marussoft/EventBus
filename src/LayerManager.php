@@ -17,7 +17,7 @@ class LayerManager
         $this->config = $config;
     }
     
-    public function register($subject, $layer)
+    public function register(string $subject, string $layer)
     {
         $this->members[$subject] = $layer;
     }
