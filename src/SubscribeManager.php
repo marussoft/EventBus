@@ -6,20 +6,24 @@ namespace Marussia\EventBus;
 
 class SubscribeManager
 {
-    // Создает задачи для события // Ошибка
-    public function createTasks(Event $event, array $members) : void
-    {
-        $tasks = [];
+    private $subscribes;
     
-        // Проходим по всем допустимым слушателям
-        foreach($members as $member) {
-        
-            if (!$member->isSubscribed($event->subject(), $event->name())) {
-                continue;
-            }
-            
-            // ошибка. нужно получать по одной задаче
-            $tasks[] = $member->getTasks($event->subject(), $event->name(), $event->data());
+    private $factory;
+    
+    // $subject = 'layer.member.action.status' 
+    public function createSubscribe(string $subject, string $memberWithLayer, string $action, array $conditions = [])
+    {
+        $this->subscribes[$subject][] = Subscribe::create([
+            'memberWithLayer' => $memberWithLayer,
+            'action' => $action,
+            'conditions' => $conditions
+        ]);
+    }
+    
+    public function getSubscribers(string $subject) : ?array
+    {
+        if (array_key_exists($subject, $this->subscribes)) {
+            return $this->subscribes[$subject];
         }
     }
 }

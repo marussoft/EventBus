@@ -17,30 +17,18 @@ class Member
     
     // Тип участника
     private $type;
-    
-    // Массив подписок
-    private $subscribe;
 
-    public function __construct(string $type, string $name, string $layer, string $handler = '')
+    public function __construct(SubscribeManager $subscribeManager)
     {
-        $this->name = $name;
-        $this->layer = $layer;
-        $this->type = $type;
-        $this->handler = $handler;
+        $this->subscribeManager = $subscribeManager;
     }
 
-    // Создает новую подписку на событие Type.Name.Event
-    public function subscribe(string $subject, string $action, array $conditions = [])
+    // Создает новую подписку на событие Layer.Name.Event // $conditions
+    public function subscribe(string $subject, array $conditions = []) : self
     {
-        $this->subscribe[$subject][$action][] = $conditions;
+        $this->subscribeManager->createSubscribe($subject, $this->layer . '.' . $this->name, $action, $conditions);
         
         return $this;
-    }
-    
-    // Прверяет подписан ли участник на событие
-    public function isSubscribed(string $subject, string $event)
-    {
-        return isset($this->subscribe[$subject . '.' . $event]);
     }
     
     // Возвращает задачи для события

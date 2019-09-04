@@ -27,16 +27,21 @@ class LayerManager
         $this->layers = $layers;
     }
     
-    // Возвращает допустипый массив слоев
-    private function getAccessLayers(string $layer) : array
+    // Возвращает допустимый массив слоев
+    public function getAccessLayers(string $memberLayer) : array
     {
-        // Получаем имя слоя по владельцу события
-        $layer = $this->members[$subject];
-
-        // Получаем ключ слоя
-        $num = array_search($layer, $this->layers);
+        $numberLayer = 0;
         
+        foreach($this->layers as $layer) {
+            if ($layer !== $memberLayer) {
+                $numberLayer++;
+            } else {
+                $numberLayer++;
+                break;
+            }
+        }
+                
         // Получаем массив слоёв доступных для события
-        return array_slice($this->layers, 0, $num + 1);
+        return array_slice($this->layers, 0, $numberLayer, true);
     }
 }

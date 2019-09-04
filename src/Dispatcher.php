@@ -12,33 +12,28 @@ class Dispatcher
     // Менеджер слоев
     private $layerManager;
     
-    // Фабрика событий
-    private $factory;
-    
-    private $currentMember;
-    
-    private $currentTask;
-    
-    private $currentAction;
+    // Фабрика задач
+    private $taskFactory;
     
     private $config;
     
     private $fileResource;
+
+    private $loop;
     
     public function __construct(
         Repository $repository, 
-        EventFactory $factory, 
+        TaskFactory $taskFactory, 
         LayerManager $layerManager, 
         Loop $loop, 
-        ConfigProvider 
-        $config, 
+        ConfigProvider $config, 
         FileResource $fileResource
     )
     {
         $this->repository = $repository;
         $this->loop = $loop;
         $this->layerManager = $layerManager;
-        $this->factory = $factory;
+        $this->taskFactory = $taskFactory;
         $this->config = $config;
         $this->fileResource = $fileResource;
     }
@@ -52,37 +47,32 @@ class Dispatcher
         
         $this->loop->addTask($this->taskFactory->createTask($startedMember, $this->config->getStartedAction()));
         
-        $this->process();
+        $this->loop->run();
     }
     
     // Обрабатывает результат текущего таска
     public function dispatchResult(ResultInterface $result, Task $doneTask)
     {
-        $event = $this->eventFactory->create($result, $doneTask);
-        
-        $this->eventStorage->add($event); // зависим от EventStorage
-        
         // Получаем допустимые слои для события
-        $accessLayers = $this->layerManager->getAccessLayers($doneTask->member->layer); // ассоциативный по слоям
+        $accessLayers = $this->layerManager->getAccessLayers($doneTask->layer); // ассоциативный по слоям
         
-        // Получаем подписчиков
-        $subscribers = $this->subscribeManager->getSubscribers($event); // массив (содержат conditions)
+        // Получаем подписчиков // массив (содержат conditions)
+        $subscribes = $this->subscribeManager->getSubscribers($doneTask->layer . '.' . $doneTask->member . '.' . $doneTask->action . '.' . $result->status);
 
-        foreach ($subscribers as $subscriber) {
-            if (!isset($accessLayers[$subscriber->layer])) {
-                // Исключение
+        if (!empty($subscribes)) {
+            foreach ($subscribes as $subscribe) {
+                if (!isset($accessLayers[$subscribe->layer])) {
+                    // Исключение
+                }
+                $this->loop->addTask($this->taskFactory->createTask($subscribe->memberWithLayer, $subscribe->action, $result->data));
             }
-            $this->loop->addTask($this->taskFactory->createTask($this->repository->getMember($subscriber->member), $subscriber, $result));
         }
+        
+        $this->loop->next();
     }
     
     public function dispatchSatelliteEvent(SatelliteEvent $event)
     {
-    
-    }
-    
-    private function process()
-    {
-
+        $this->fileResource->plugHooks($this->config->getHookListeners());
     }
 }
