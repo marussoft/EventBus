@@ -21,7 +21,6 @@ class Bus
     private $config;
     
     public function __construct(
-        MemberFactory $member_factory,
         ResultFactory $result_factory,
         Repository $repository, 
         LayerManager $layer_manager,
@@ -30,7 +29,6 @@ class Bus
         FilterManager $filter_manager,
         ConfigProvider $config
     ){
-        $this->memberFactory = $member_factory;
         $this->resultFactory = $result_factory;
         $this->repository = $repository;
         $this->layerManager = $layer_manager;
@@ -50,11 +48,9 @@ class Bus
     // Регистрирует нового участника в шине событий
     public function register(string $name, string $layer) : Member
     {
-        $member = $this->memberFactory->create(compact($name, $layer));
+        $member = Member::create(compact('name', 'layer'));
         
         $this->repository->save($member);
-        
-        $this->layerManager->register($name, $layer);
         
         return $member;
     }

@@ -8,18 +8,11 @@ class LayerManager
 {
     private $layers;
     
-    private $members;
-    
     private $config;
     
     public function __construct(ConfigProvider $config)
     {
         $this->config = $config;
-    }
-    
-    public function register(string $subject, string $layer)
-    {
-        $this->members[$subject] = $layer;
     }
     
     public function setLayers(array $layers) : void

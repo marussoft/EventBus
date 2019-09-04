@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Marussia\EventBus;
 
+use Marussia\EventBus\Entities\Result;
+
 class Dispatcher
 {
-    // Репозиторий всех участников
-    private $repository;
-    
     // Менеджер слоев
     private $layerManager;
     
@@ -22,7 +21,6 @@ class Dispatcher
     private $loop;
     
     public function __construct(
-        Repository $repository, 
         TaskFactory $taskFactory, 
         LayerManager $layerManager, 
         Loop $loop, 
@@ -30,7 +28,6 @@ class Dispatcher
         FileResource $fileResource
     )
     {
-        $this->repository = $repository;
         $this->loop = $loop;
         $this->layerManager = $layerManager;
         $this->taskFactory = $taskFactory;
@@ -41,38 +38,73 @@ class Dispatcher
     // Вызывается из фасада Bus
     public function startLoop($data = null)
     {
-        $this->fileResource->plugLayer($this->config->getStartedLayer());
+        $this->fileResource->plugLayer($this->config->getStartedLayer()); // Подключает участников (регистрируя в Repository)
         
-        $startedMember = $this->repository->getMember($this->config->getStartedMember());
-        
-        $this->loop->addTask($this->taskFactory->createTask($startedMember, $this->config->getStartedAction()));
+        $this->loop->addTask($this->taskFactory->createTask($this->config->getStartedMember(), $this->config->getStartedAction(), $data));
         
         $this->loop->run();
     }
     
-    // Обрабатывает результат текущего таска
-    public function dispatchResult(ResultInterface $result, Task $doneTask)
+    // Обрабатывает результат текущего таска. Вызывается из TaskManager
+    public function dispatchResult(Result $result, Task $doneTask)
     {
+        if ($this->isContinued($result)) {
+            $doneTask->timeout = $result->timeout();
+            $this->loop->retry($doneTask);
+        }
+    
         // Получаем допустимые слои для события
-        $accessLayers = $this->layerManager->getAccessLayers($doneTask->layer); // ассоциативный по слоям
+        $accessLayers = $this->getAccessLayers($doneTask->layer); // ассоциативный по слоям
+        
+        $subject = $doneTask->layer . '.' . $doneTask->member . '.' . $doneTask->action . '.' . $result->status;
         
         // Получаем подписчиков // массив (содержат conditions)
-        $subscribes = $this->subscribeManager->getSubscribers($doneTask->layer . '.' . $doneTask->member . '.' . $doneTask->action . '.' . $result->status);
+        $subscribes = $this->subscribeManager->getSubscribes($subject);
 
         if (!empty($subscribes)) {
             foreach ($subscribes as $subscribe) {
                 if (!isset($accessLayers[$subscribe->layer])) {
                     // Исключение
                 }
-                $this->loop->addTask($this->taskFactory->createTask($subscribe->memberWithLayer, $subscribe->action, $result->data));
+                $this->loop->addSubscribedTask($this->taskFactory->createSubscribed($subscribe, $result));
             }
         }
         
         $this->loop->next();
     }
     
-    public function dispatchSatelliteEvent(SatelliteEvent $event)
+    // Запускает переход на следующий слой
+    public function upLayer(string $member, string $action)
+    {
+        $currentTask = $this->loop->getCurrentTask();
+        
+        $accessLayers = $this->getAccessLayers($currentTask->layer);
+        
+        if (!isset($accessLayers[$currentTask->layer])) {
+            // Исключение
+        }
+        
+        $task = $this->taskFactory->createUpper();
+        
+        $this->loop->addUpperTask($task);
+    }
+    
+    // Работа с хуками. Не реализовано
+    public function dispatchHook(HookEvent $event)
     {
         $this->fileResource->plugHooks($this->config->getHookListeners());
+    }
+    
+    private function isContinued(Result $result)
+    {
+        if ($result->status === 'await' or $result->status === 'fail' and !empty($result->timeout)) {
+            return true;
+        }
+        return false;
+    }
+    
+    private function getAccessLayers(string $layer) : array
+    {
+        return $this->layerManager->getAccessLayers($layer); // ассоциативный по слоям
     }
 }
