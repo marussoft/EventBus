@@ -18,37 +18,33 @@ class Bus
     
     private $dispatcher;
     
+    private $taskManager;
+    
     private $config;
     
-    public function __construct(
-        ResultFactory $result_factory,
-        Repository $repository, 
-        LayerManager $layer_manager,
-        Dispatcher $dispatcher,
-        TaskManager $task_manager,
-        FilterManager $filter_manager,
-        ConfigProvider $config
-    ){
-        $this->resultFactory = $result_factory;
-        $this->repository = $repository;
-        $this->layerManager = $layer_manager;
-        $this->dispatcher = $dispatcher;
-        $this->filterManager = $filter_manager;
-        $this->taskManager = $task_manager;
-        $this->config = $config;
-    }
+    private $repository;
     
-    public static function create() : Bus
+    private $layerManager;
+    
+    private $filterManager;
+    
+    private $container;
+    
+    public function __construct()
     {
-        $container = new Container;
-        
-        return $container->instance(Bus::class);
+        $this->container = new Container();
+        $this->repository = $this->container->instance(Repository::class);
+        $this->layerManager = $this->container->instance(LayerManager::class);
+        $this->dispatcher = $this->container->instance(Dispatcher::class);
+        $this->filterManager = $this->container->instance(FilterManager::class);
+        $this->taskManager = $this->container->instance(TaskManager::class);
+        $this->config = $this->container->instance(ConfigProvider::class);
     }
     
     // Регистрирует нового участника в шине событий
     public function register(string $name, string $layer) : Member
     {
-        $member = Member::create(compact('name', 'layer'));
+        $member = $this->container->instance(Member::class, compact('name', 'layer'));
         
         $this->repository->save($member);
         

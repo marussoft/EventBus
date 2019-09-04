@@ -38,9 +38,11 @@ class Dispatcher
     // Вызывается из фасада Bus
     public function startLoop($data = null)
     {
-        $this->fileResource->plugLayer($this->config->getStartedMemberLayer()); // Подключает участников (регистрируя в Repository)
+        $this->fileResource->plugLayer($this->config->getStartedMemberLayer());
         
-        $this->loop->addTask($this->taskFactory->createTask($this->config->getStartedMember(), $this->config->getStartedAction(), $data));
+        $task = $this->taskFactory->createTask($this->config->getStartedMember(), $this->config->getStartedAction(), $data);
+        
+        $this->loop->addTask($task);
         
         $this->loop->run();
     }
