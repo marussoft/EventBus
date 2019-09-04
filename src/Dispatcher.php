@@ -38,7 +38,7 @@ class Dispatcher
     // Вызывается из фасада Bus
     public function startLoop($data = null)
     {
-        $this->fileResource->plugLayer($this->config->getStartedLayer()); // Подключает участников (регистрируя в Repository)
+        $this->fileResource->plugLayer($this->config->getStartedMemberLayer()); // Подключает участников (регистрируя в Repository)
         
         $this->loop->addTask($this->taskFactory->createTask($this->config->getStartedMember(), $this->config->getStartedAction(), $data));
         
@@ -66,6 +66,7 @@ class Dispatcher
                 if (!isset($accessLayers[$subscribe->layer])) {
                     // Исключение
                 }
+                $this->fileResource->plugLayer($subscribe->memberWithLayer);
                 $this->loop->addSubscribedTask($this->taskFactory->createSubscribed($subscribe, $result));
             }
         }
@@ -84,8 +85,8 @@ class Dispatcher
             // Исключение
         }
         
+        $this->fileResource->plugLayer($member);
         $task = $this->taskFactory->createUpper();
-        
         $this->loop->addUpperTask($task);
     }
     
