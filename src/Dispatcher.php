@@ -51,7 +51,7 @@ class Dispatcher
     public function dispatchResult(Result $result, Task $doneTask)
     {
         if ($this->isContinued($result)) {
-            $doneTask->timeout = $result->timeout();
+            $doneTask->timeout = (microtime() + $result->timeout());
             $this->loop->retry($doneTask);
         }
     

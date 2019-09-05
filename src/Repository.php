@@ -6,37 +6,23 @@ namespace Marussia\EventBus;
 
 class Repository
 {
-    // Массив слоев участников
-    private $memberLayers;
-    
     // Массив участников
     private $members;
     
-    // Регистрирует участника в репозитории шины событий
-    public function save(Member $member)
+    // Регистрирует участника в репозитории шины
+    public function save(Member $member) : void
     {
-        $this->members[$member->type() . '.' . $member->name()] = $member;
-        
-        $this->memberLayers[$member->type() . '.' . $member->name()] = $member->layer();
-    }
-
-    // Возвращает слой для участника $name
-    public function getMemberLayer(string $name)
-    {
-        return $this->memberLayers[$name];
+        $this->members[$member->layer . '.' . $member->name()] = $member;
     }
     
-    // Возвращает массив участников по массиву слоев
-    public function getMembersByLayers(array $layers)
+    // Возвращает участника по layer.name
+    public function getMember(string $memberWithLayer) : Member
     {
-        $array = array_intersect($this->memberLayers, $layers);
-        
-        return array_intersect_key($this->members, $array);
+        return $this->members[$memberWithLayer];
     }
     
-    // Возвращает участника по type.name
-    public function getMember(string $member)
+    public function has(string $memberWithLayer) : bool
     {
-        return $this->members[$member];
+        return array_key_exists($memberWithLayer, $this->members);
     }
 }
