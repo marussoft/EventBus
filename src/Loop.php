@@ -10,46 +10,31 @@ class Loop
 {
     private $taskManager;
 
-    private $subscribeQueue;
-    
-    private $heldTasks = [];
+    private $mainQueue;
     
     private $currentTask;
     
-    private $retryTasks = [];
-    
-    private $completeTasks = [];
-    
-    private $upperTasks;
+    private $upperQueue;
 
     public function __construct(TaskManager $taskManager)
     {
         $this->taskManager = $taskManager;
         
-        $this->subscribeQueue = new TaskQueue();
-        $this->subscribeQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
+        $this->mainQueue = new TaskQueue();
+        $this->mainQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
         
-        $this->upperTasks = new TaskQueue();
-        $this->upperTasks->setIteratorMode(\SplQueue::IT_MODE_DELETE);
+        $this->upperQueue = new TaskQueue();
+        $this->upperQueue->setIteratorMode(\SplQueue::IT_MODE_DELETE);
     }
     
-    public function addSubscribedTask(Task $task)
+    public function addTask(Task $task)
     {
-        if ($this->isSatisfied($task)) {
-            $this->subscribeQueue->addTask($task);
-        } else {
-            $this->heldTasks[] = $task;
-        }
+        $this->mainQueue->addTask($task);
     }
     
     public function addUpperTask(Task $task)
     {
-        $this->upperTasks->enqueue($task);
-    }
-
-    public function retry(Task $task)
-    {
-        $this->retryTasks[] = $task;
+        $this->upperQueue->enqueue($task);
     }
     
     public function getCurrentTask() : Task
@@ -59,41 +44,23 @@ class Loop
     
     public function run()
     {
-        $this->currentTask = $this->subscribeQueue->dequeue();
+        if ($this->mainQueue->isEmpty()) {
+            // Исключение
+        }
         
+        $this->currentTask = $this->mainQueue->dequeue();
         $this->taskManager->run($this->currentTask);
     }
     
     public function next()
     {
-        // Проверить отложенные
-        
-        // Проверить повторы
-    
-        $this->archiveTask();
-        
-        $this->currentTask = $this->subscribeQueue->dequeue();
-        
-        if ($this->subscribeQueue->isEmpty() && !$this->upperTasks->isEmpty()) {
-            $this->subscribeQueue->addTask($this->upperTasks->dequeue());
+        if ($this->mainQueue->isEmpty() && !$this->upperQueue->isEmpty()) {
+            $this->mainQueue->addTask($this->upperQueue->dequeue());
         }
         
-        $this->taskManager->run($this->currentTask);
-    }
-    
-    private function archiveTask()
-    {
-        $this->completeTasks[] = $this->currentTask;
-    }
-    
-    private function checkHeld()
-    {
-    
-    }
-    
-    private function isSatisfied(Task $task)
-    {
-    
+        if (!$this->mainQueue->isEmpty()) {
+            $this->currentTask = $this->mainQueue->dequeue();
+            $this->taskManager->run($this->currentTask);
+        }
     }
 }
- 
