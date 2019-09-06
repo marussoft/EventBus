@@ -22,6 +22,6 @@ class LayerManager
         $key = array_search($memberLayer, $this->layers);
         
         // Получаем массив слоёв доступных для события
-        $layers = array_slice($this->layers, 0, $key + 1);
+        return array_slice($this->layers, 0, $key + 1);
     }
 }

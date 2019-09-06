@@ -74,9 +74,11 @@ class Dispatcher
     {
         $currentTask = $this->loop->getCurrentTask();
         
+        $upperMemberLayer = array_shift(explode('.', $member));
+        
         $accessLayers = $this->getAccessLayers($currentTask->layer);
         
-        if (!isset($accessLayers[$currentTask->layer])) {
+        if (array_search($upperMemberLayer, $accessLayers) === false) {
             // Исключение
         }
         
@@ -103,7 +105,7 @@ class Dispatcher
 
         if (!empty($subscribes)) {
             foreach ($subscribes as $subscribe) {
-                if (!isset($accessLayers[$subscribe->layer])) {
+                if (array_search($subscribe->layer, $accessLayers) === false) {
                     // Исключение
                 }
                 $this->fileResource->plugLayer($subscribe->memberWithLayer);
@@ -117,13 +119,16 @@ class Dispatcher
         foreach($this->heldTasks as $task) {
             if ($this->isSatisfied($task->conditions)) {
                 $this->loop->addTask($task);
+                unset($this->heldTasks[current($this->heldTasks)]);
             }
         }
     }
     
-    private function isSatisfied(array $conditions)
+    private function isSatisfied(array $conditions) : bool
     {
-
+        $intersections = array_intersect($conditions, $this->heldTasks);
+        
+        return count($intersections) === count($conditions);
     }
     
     private function getAccessLayers(string $layer) : array
@@ -136,13 +141,14 @@ class Dispatcher
         foreach ($this->retryTasks as $task) {
             if ($task->timeout <= microtime()) {
                 $this->loop->addTask($task);
+                unset($this->retryTasks[current($this->retryTasks)]);
             }
         }
     }
     
     private function saveToListCompleteTask(Result $result, Task $task)
     {
-        $this->completeTasks[] = $task->layer . '.' . $task->member . '.' . $task->action . '.' . $result->status;
+        $this->completeTasks[$task->layer . '.' . $task->member . '.' . $task->action . '.' . $result->status] = $task;
     }
     
     private function checkForRetry(Result $result, Task $task)
