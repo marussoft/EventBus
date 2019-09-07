@@ -26,4 +26,14 @@ class SubscribeManager
             return $this->subscribes[$subject];
         }
     }
+    
+    public function conditions(array $conditions)
+    {
+
+    }
+    
+    public function request(array $conditions)
+    {
+    
+    }
 }

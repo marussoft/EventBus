@@ -28,6 +28,8 @@ class Bus
     
     private $filterManager;
     
+    private $memberBuilder;
+    
     private $container;
     
     public function __construct()
@@ -39,12 +41,14 @@ class Bus
         $this->filterManager = $this->container->instance(FilterManager::class);
         $this->taskManager = $this->container->instance(TaskManager::class);
         $this->config = $this->container->instance(ConfigProvider::class);
+        $this->memberBuilder = $this->container->instance(MemberBuilder::class);
     }
     
+    // Переписать на MemberBuildr
     // Регистрирует нового участника в шине событий
     public function register(string $name, string $layer) : Member
     {
-        $member = $this->container->instance(Member::class, compact('name', 'layer'));
+        $member = $this->container->instance(Member::class, compact('name', 'layer'), false);
         
         $this->repository->save($member);
         

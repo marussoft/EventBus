@@ -15,6 +15,8 @@ class Loop
     private $currentTask;
     
     private $upperQueue;
+    
+    private $loopStarted = false;
 
     public function __construct(TaskManager $taskManager)
     {
@@ -44,23 +46,34 @@ class Loop
     
     public function run()
     {
+        if ($this->loopStarted) {
+            // Исключение
+        }
+    
         if ($this->mainQueue->isEmpty()) {
             // Исключение
         }
         
         $this->currentTask = $this->mainQueue->dequeue();
+        $this->loopStarted = true;
         $this->taskManager->run($this->currentTask);
     }
     
     public function next()
     {
-        if ($this->mainQueue->isEmpty() && !$this->upperQueue->isEmpty()) {
-            $this->mainQueue->addTask($this->upperQueue->dequeue());
-        }
-        
         if (!$this->mainQueue->isEmpty()) {
             $this->currentTask = $this->mainQueue->dequeue();
             $this->taskManager->run($this->currentTask);
+        } else {
+            $this->loopStarted = false;
+            $this->taskManager->terminate();
+        }
+    }
+    
+    public function checkUppperQueue()
+    {
+        if ($this->mainQueue->isEmpty() && !$this->upperQueue->isEmpty()) {
+            $this->mainQueue->addTask($this->upperQueue->dequeue());
         }
     }
 }

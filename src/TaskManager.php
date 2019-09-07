@@ -21,59 +21,64 @@ class TaskManager extends Container
     
     private $dispatcher;
     
-    private $eventFactory;
+    private $middlewareManager;
     
-    public function __construct(FilterManager $filter, EventDispatcher $dispatcher, EventFactory $factory)
+    private $repository;
+    
+    public function __construct(FilterManager $filter, Dispatcher $dispatcher, MiddlewareManager $middlewareManager, Repository $repository)
     {
         $this->filter = $filter;
         $this->dispatcher = $dispatcher;
-        $this->eventFactory = $factory;
-    }
-
-    public function setHandlersMap(array $map) : void
-    {
-        $this->classMap = $map;
+        $this->middlewareManager = $middlewareManager;
+        $this->repository = $repository;
     }
     
     // Принимает задачу на обработку
     public function handle(Task $task) : void
     {
         $this->task = $task;
-        $this->prepare();
-        $this->filter();
         
-        if (is_null($this->task)) {
-            return;
+        if (!$this->repository->exist($task->layer . '.' . $task->memberName)) {
+            // Исключение
         }
-        $this->run();
+        
+        $this->member = $this->repository->getMember($task->layer . '.' . $task->memberName);
+        
+        if ($this->middlewareManager->isAccepted($task)) {
+            $this->filterTask();
+            $this->prepareTask();
+            $this->run();
+        }
     }
     
     // Подготавливает принятую задачу в обработчик
-    private function prepare($task) : void
+    private function prepareTask($task) : void
     {
-        if (empty($task->handler())) {
-            $this->handler = $this->classMap[$task->type()];
-        } else {
-            $this->handler = $this->classMap[$task->handler()];
+        if (!empty($this->member->handler)) {
+            $this->handler = $this->member->handler;
         }
         
         if (!$this->has($this->handler)) {
             $this->instance($this->handler);
         }
     }
-    
+
     // Запускает фильтры для задачи
-    private function filter()
+    private function filterTask()
     {
-        $this->filter->run($this->task);
+        if (!empty($this->currentMember->filters)) {
+            $this->filter->run($this->currentMember->filters);
+        }
     }
     
     // Передает задачу в обработчик // Здесь происходит ожидание результата
     private function run() : void
     {
-        // 
-        $result = $this->get($this->handler)->run($this->task);
-        
-        $this->dispatcher->resolveResult($result);
+        try {
+            $result = $this->get($this->handler)->run($this->task);
+            $this->dispatcher->dispatchResult($result);
+        } catch(\Exception $e) {
+            $this->dispatcher->rollback($this->task, $e);
+        }
     }
 }

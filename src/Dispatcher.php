@@ -54,7 +54,7 @@ class Dispatcher
     // Обрабатывает результат текущего таска. Вызывается из TaskManager
     public function dispatchResult(Result $result, Task $resultTask)
     {
-        $this->saveToListCompleteTask($result, $resultTask);
+        $this->saveCompleteTask($result, $resultTask);
     
         // Проверить отложенные
         $this->checkHeld();
@@ -65,6 +65,8 @@ class Dispatcher
         $this->checkForRetry($result, $resultTask);
     
         $this->prepareTasks($result, $resultTask);
+        
+        $this->loop->checkUppperQueue();
         
         $this->loop->next();
     }
@@ -93,6 +95,16 @@ class Dispatcher
         $this->fileResource->plugHooks($this->config->getHookListeners());
     }
     
+    public function rollback(Task $task)
+    {
+    
+    }
+    
+    public function getTaskData(string $taskResult)
+    {
+    
+    }
+    
     private function prepareTasks(Result $result, Task $resultTask)
     {
         // Получаем допустимые слои для события
@@ -101,14 +113,14 @@ class Dispatcher
         $subject = $resultTask->layer . '.' . $resultTask->member . '.' . $resultTask->action . '.' . $result->status;
         
         // Получаем подписчиков // массив (содержат conditions)
-        $subscribes = $this->subscribeManager->getSubscribes($subject);
+        $this->subscribes[$subject] = $this->subscribeManager->getSubscribes($subject);
 
-        if (!empty($subscribes)) {
-            foreach ($subscribes as $subscribe) {
+        if (!empty($this->subscribes[$subject])) {
+            foreach ($this->subscribes[$subject] as $subscribe) {
                 if (array_search($subscribe->layer, $accessLayers) === false) {
                     // Исключение
                 }
-                $this->fileResource->plugLayer($subscribe->memberWithLayer);
+                $this->fileResource->plugLayer($subscribe->memberWithLayer); // Проверить на ошибку
                 $this->loop->addTask($this->taskFactory->createSubscribed($subscribe, $result));
             }
         }
@@ -117,18 +129,22 @@ class Dispatcher
     private function checkHeld()
     {
         foreach($this->heldTasks as $task) {
-            if ($this->isSatisfied($task->conditions)) {
+            if ($this->isSatisfied($task)) {
                 $this->loop->addTask($task);
                 unset($this->heldTasks[current($this->heldTasks)]);
             }
         }
     }
     
-    private function isSatisfied(array $conditions) : bool
+    private function isSatisfied(Task $task) : bool
     {
-        $intersections = array_intersect($conditions, $this->heldTasks);
+        $intersections = array_intersect($task->conditions, $this->heldTasks);
         
-        return count($intersections) === count($conditions);
+        $conditions = count($intersections) === count($conditions);
+        
+        // Проверка на наличие нужных данных из SubscribeManager
+        $subject = $task->layer . '.' . $task->member . '.' . $task->action . '.' . $task->status; // беда / Доработать SubscribeManager
+        
     }
     
     private function getAccessLayers(string $layer) : array
@@ -146,7 +162,7 @@ class Dispatcher
         }
     }
     
-    private function saveToListCompleteTask(Result $result, Task $task)
+    private function saveCompleteTask(Result $result, Task $task)
     {
         $this->completeTasks[$task->layer . '.' . $task->member . '.' . $task->action . '.' . $result->status] = $task;
     }
