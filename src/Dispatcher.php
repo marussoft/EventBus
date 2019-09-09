@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marussia\EventBus;
 
 use Marussia\EventBus\Entities\Result;
+use Marussia\EventBus\Exceptions\ActionIsNotAccessedForMemberException;
 
 class Dispatcher
 {
@@ -25,6 +26,8 @@ class Dispatcher
     private $retryTasks = [];
     
     private $rollback;
+    
+    private const RESULT_STATUS = 'await';
     
     public function __construct(
         TaskFactory $taskFactory, 
@@ -85,7 +88,7 @@ class Dispatcher
         $accessLayers = $this->getAccessLayers($currentTask->layer);
         
         if (array_search($upperMemberLayer, $accessLayers) === false) {
-            // Исключение
+            throw new ActionIsNotAccessedForMemberException($member, $action);
         }
         
         $this->fileResource->plugLayer($member);
@@ -197,7 +200,7 @@ class Dispatcher
     
     private function checkForRetry(Result $result, Task $task)
     {
-        if ($result->status === 'await') {
+        if ($result->status === self::RESULT_STATUS) {
             $task->timeout = (microtime() + $result->timeout());
             $this->retryTasks[] = $task;
         }

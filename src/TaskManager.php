@@ -25,7 +25,13 @@ class TaskManager extends Container
     
     private $config;
     
-    public function __construct(FilterManager $filter, MiddlewareManager $middlewareManager, Repository $repository, Dispatcher $dispatcher, ConfigProvider $config)
+    public function __construct(
+        FilterManager $filter,
+        MiddlewareManager $middlewareManager,
+        Repository $repository,
+        Dispatcher $dispatcher,
+        ConfigProvider $config
+    )
     {
         $this->filter = $filter;
         $this->middlewareManager = $middlewareManager;
@@ -53,10 +59,10 @@ class TaskManager extends Container
     // Подготавливает обработчик
     private function prepareHandler(Task $task, Member $member) : HandlerInterface
     {
-        if (!empty($member->handler)) {
-            $handler = $member->handler;
-        } else {
+        if (empty($member->handler)) {
             $handler = $this->config->getDefaultHandler($member->layer);
+        } else {
+            $handler = $member->handler;
         }
         
         if ($this->has($handler)) {
