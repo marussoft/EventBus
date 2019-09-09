@@ -20,7 +20,17 @@ class TaskFactory
     public function __construct(Repository $repository, ConfigProvider $config)
     {
         $this->repository = $repository;
-        $this->config = $config;
+    }
+    
+    public function createStarter(string $memberWithLayer, string $action, $data = null)
+    {
+        $task = new Task();
+        $task->action = $action;
+        $task->data[] = $data !== null ?: $data;
+        
+        $this->prepareMemberParams($task, $memberWithLayer);
+        
+        return $task;
     }
     
     public function createSubscribed(Subscribe $subscribe, Result $result) : Task
@@ -28,7 +38,7 @@ class TaskFactory
         $task = new Task();
         $task->action = $subscribe->action;
         $task->contitions = $subscribe->conditions;
-        $task->data = $result->data;
+        $task->data[] = $result->data !== null ?: $result->data;
         
         $this->prepareMemberParams($task, $subscribe->memberWithLayer);
         
@@ -39,8 +49,7 @@ class TaskFactory
     {
         $task = new Task();
         $task->action = $action;
-        $task->contitions = [];
-        $task->data = $data = null;
+        $task->data[] = $data !== null ?: $data;;
         
         $this->prepareMemberParams($task, $memberWithLayer);
         

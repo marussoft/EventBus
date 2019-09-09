@@ -12,19 +12,19 @@ class Subscribe
     
     public $action;
     
-    public $conditions;
+    public $conditions = [];
     
-    public function __construct(string $subject, string $memberWithLayer, string $action, array $conditions)
+    public $requested = [];
+    
+    public function __construct(string $subject, string $memberWithLayer, string $action)
     {
         $this->subject = $subject;
         $this->member = $memberWithLayer;
         $this->action = $action;
-        $this->condition = $conditions;
     }
     
     public function create(array $data)
     {
-        return new static($data['subject'], $data['memberWithLayer'], $data['action'], $data['conditions']);
+        return new static($data['subject'], $data['memberWithLayer'], $data['action']);
     }
 }
-

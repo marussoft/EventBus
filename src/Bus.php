@@ -18,8 +18,6 @@ class Bus
     
     private $dispatcher;
     
-    private $taskManager;
-    
     private $config;
     
     private $repository;
@@ -39,20 +37,18 @@ class Bus
         $this->layerManager = $this->container->instance(LayerManager::class);
         $this->dispatcher = $this->container->instance(Dispatcher::class);
         $this->filterManager = $this->container->instance(FilterManager::class);
-        $this->taskManager = $this->container->instance(TaskManager::class);
         $this->config = $this->container->instance(ConfigProvider::class);
         $this->memberBuilder = $this->container->instance(MemberBuilder::class);
     }
     
-    // Переписать на MemberBuildr
     // Регистрирует нового участника в шине событий
-    public function register(string $name, string $layer) : Member
+    public function register(string $name, string $layer) : MemberBuilder
     {
-        $member = $this->container->instance(Member::class, compact('name', 'layer'), false);
+        $member = $this->memberBuilder->create();
         
         $this->repository->save($member);
         
-        return $member;
+        return $this->memberBuilder;
     }
     
     // Добавляет слои
@@ -62,31 +58,31 @@ class Bus
         return $this;
     }
     
-    public function upLayer(string $member, string $action) : void
+    public function upLayer(string $member, string $action, $data = null) : void
     {
-    
+        $this->dispatcher->upLayer($member, $action, $data);
     }
     
-    public function setMemberDirPath(string $memberDirPath)
+    public function setMemberDirPath(string $memberDirPath) : void
     {
-        $this->memberDirPath = $memberDirPath;
+        $this->config->setMemberDirPath($memberDirPath);
     }
     
     // Устанавливает обработчики для менеджера задач
     public function setDefaultHandlersMap(array $map) : self
     {
-        $this->taskManager->setDefaultHandlersMap($map);
+        $this->config->setDefaultHandlersMap($map);
         return $this;
     }
     
     // $startingTask Layer.MemberName.Action
-    public function setStartingTask(string $startingTask)
+    public function setStartingTask(string $startingTask) : void
     {
         $this->config->setStartingTask($startingTask);
     }
     
-    public function run($data = null)
+    public function run($data = null) : void
     {
-        return $this->dispatcher->startLoop($data);
+        $this->dispatcher->startLoop($data);
     }
 }

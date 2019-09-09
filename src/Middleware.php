@@ -13,7 +13,7 @@ class Middleware
         $this->dispatcher = $dispatcher;
     }
     
-    public function getData(string $event)
+    public function getResultData(string $event)
     {
         return $this->dispatcher->getTaskData($event);
     }

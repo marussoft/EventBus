@@ -24,12 +24,15 @@ class Dispatcher
     
     private $retryTasks = [];
     
+    private $rollback;
+    
     public function __construct(
         TaskFactory $taskFactory, 
         LayerManager $layerManager, 
         Loop $loop, 
         ConfigProvider $config, 
-        FileResource $fileResource
+        FileResource $fileResource,
+        Rollback $rollback
     )
     {
         $this->loop = $loop;
@@ -37,6 +40,7 @@ class Dispatcher
         $this->taskFactory = $taskFactory;
         $this->config = $config;
         $this->fileResource = $fileResource;
+        $this->rollback = $rollback;
     }
     
     // Вызывается из фасада Bus
@@ -52,7 +56,7 @@ class Dispatcher
     }
     
     // Обрабатывает результат текущего таска. Вызывается из TaskManager
-    public function dispatchResult(Result $result, Task $resultTask)
+    public function dispatchResultEvent(Result $result, Task $resultTask)
     {
         $this->saveCompleteTask($result, $resultTask);
     
@@ -72,7 +76,7 @@ class Dispatcher
     }
     
     // Запускает переход на следующий слой
-    public function upLayer(string $member, string $action)
+    public function upLayer(string $member, string $action, $data = null)
     {
         $currentTask = $this->loop->getCurrentTask();
         
@@ -85,24 +89,25 @@ class Dispatcher
         }
         
         $this->fileResource->plugLayer($member);
-        $task = $this->taskFactory->createUpper();
+        $task = $this->taskFactory->createUpper($member, $action, $data);
         $this->loop->addUpperTask($task);
     }
     
-    // Работа с хуками. Не реализовано
-    public function dispatchHook(HookEvent $event)
+    public function getTaskData(string $taskName) : array
     {
-        $this->fileResource->plugHooks($this->config->getHookListeners());
+        if (array_key_exists($taskName, $this->completeTasks)) {
+            // Исключение
+        }
+        return $this->completeTasks[$taskName]->data;
     }
     
-    public function rollback(Task $task)
+    public function rollback(Task $task, \Throwable $exception) : void
     {
-    
-    }
-    
-    public function getTaskData(string $taskResult)
-    {
-    
+        $this->saveCompleteTask($task);
+        
+        $this->rollback->run($this->completeTasks);
+        
+        throw $exception;
     }
     
     private function prepareTasks(Result $result, Task $resultTask)
@@ -120,8 +125,15 @@ class Dispatcher
                 if (array_search($subscribe->layer, $accessLayers) === false) {
                     // Исключение
                 }
+                
                 $this->fileResource->plugLayer($subscribe->memberWithLayer); // Проверить на ошибку
-                $this->loop->addTask($this->taskFactory->createSubscribed($subscribe, $result));
+                $task = $this->taskFactory->createSubscribed($subscribe, $result);
+                
+                if ($this->isSatisfied($task)) {
+                    $this->loop->addTask($task);
+                } else {
+                    $this->heldTasks[$task->layer . '.' . $task->member . '.' . $task->action . '.' . $result->status] = $task;
+                }
             }
         }
     }
@@ -138,13 +150,29 @@ class Dispatcher
     
     private function isSatisfied(Task $task) : bool
     {
-        $intersections = array_intersect($task->conditions, $this->heldTasks);
+        $conditions = array_intersect($task->conditions, $this->completeTasks);
         
-        $conditions = count($intersections) === count($conditions);
+        if (count($conditions) !== count($task->conditions)) {
+            return false;
+        }
+
+        // Проверка на наличие нужных данных из выполненных тасков
+        $requestedTasksData = array_intersect($task->requested, $this->completeTasks);
         
-        // Проверка на наличие нужных данных из SubscribeManager
-        $subject = $task->layer . '.' . $task->member . '.' . $task->action . '.' . $task->status; // беда / Доработать SubscribeManager
+        if (count($requestedTasksData) !== count($task->requested)) {
+            return false;
+        }
         
+        $accessLayers = $this->getAccessLayers($task->layer);
+        
+        foreach($requestedTasksData as $completeTask) {
+            if (array_search($completeTask->layer, $accessLayers) === false) {
+                // Исключение
+            }
+        
+            $task->data = array_merge($task->data, $completeTask->data);
+        }
+        return true;
     }
     
     private function getAccessLayers(string $layer) : array

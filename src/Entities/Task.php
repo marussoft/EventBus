@@ -6,64 +6,19 @@ namespace Marussia\EventBus;
 
 class Task
 {
-    private $name;
+    public $memberName;
     
-    private $action;
+    public $action;
     
-    private $layer;
+    public $layer;
     
-    private $data;
+    public $data;
     
-    private $conditions;
+    public $conditions = [];
     
-    private $handler;
+    public $handler = '';
 
-    public function __construct(string $name, string $action, string $layer, array $conditions = [], string $handler = '')
-    {
-        $this->name = $name;
-        $this->action = $action;
-        $this->layer = $layer;
-        $this->conditions = $conditions;
-        $this->handler = $handler;
-    }
+    public $requested = [];
     
-    public function setData($data)
-    {
-        $this->data = $data;
-    }
-    
-    public function name()
-    {
-        return $this->name;
-    }
-    
-    public function type()
-    {
-        return $this->type;
-    }
-    
-    public function action()
-    {
-        return $this->action;
-    }
-    
-    public function layer()
-    {
-        return $this->layer;
-    }
-    
-    public function data()
-    {
-        return $this->data;
-    }
-    
-    public function conditions()
-    {
-        return $this->conditions;
-    }
-    
-    public function handler()
-    {
-        return $this->handler;
-    }
+    public $rollback = '';
 }

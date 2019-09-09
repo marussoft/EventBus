@@ -11,12 +11,11 @@ class SubscribeManager
     private $factory;
     
     // $subject = 'layer.member.action.status' 
-    public function createSubscribe(string $subject, string $memberWithLayer, string $action, array $conditions = [])
+    public function createSubscribe(string $subject, string $memberWithLayer, string $action)
     {
         $this->subscribes[$subject][] = Subscribe::create([
             'memberWithLayer' => $memberWithLayer,
             'action' => $action,
-            'conditions' => $conditions
         ]);
     }
     
@@ -27,13 +26,27 @@ class SubscribeManager
         }
     }
     
-    public function conditions(array $conditions)
+    public function conditions(string $subject, array $conditions) : void
     {
-
+        if (!array_key_exists($subject, $this->subscribes)) {
+            // Исключение
+        }
+        $this->subscribes[$subject]->conditions = $conditions;
     }
     
-    public function request(array $conditions)
+    public function requested(string $subject, array $requested) : void
     {
+        if (!array_key_exists($subject, $this->subscribes)) {
+            // Исключение
+        }
+        $this->subscribes[$subject]->requested = $requested;
+    }
     
+    public function rollback(string $subject, string $rollbackClassName)
+    {
+        if (!array_key_exists($subject, $this->subscribes)) {
+            // Исключение
+        }
+        $this->subscribes[$subject]->rollback = $rollbackClassName;
     }
 }
