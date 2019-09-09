@@ -15,7 +15,7 @@ class TaskQueue extends \SplQueue
     
     public function addTask(Task $task) : void
     {
-        $offset = $task->layer . '.' . $task->memberName . '' . $task->action;
+        $offset = $task->layer . '.' . $task->memberName . '.' . $task->action;
     
         if ($this->offsetExists($offset)) {
             $this->offsetSet($offset, $task);
