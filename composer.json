@@ -1,7 +1,7 @@
 {
     "name": "marussia/event-bus",
     "type": "library",
-    "description": "Marussia event bus",
+    "description": "Marussia event bus implementation",
     "license": "MIT",
     "keywords": [
         "event-bus"
@@ -17,7 +17,7 @@
     },
     "require": {
         "php": "^7.0",
-        "marussia/dependency-injection": "dev-master"
+        "marussia/dependency-injection": "~1.0"
     },
     "minimum-stability": "dev",
     "autoload": {
